@@ -5,20 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ficha de Vistoria - Áreas Urbanas</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1a365d">
+    <meta name="theme-color" content="#344c59">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Ficha Vistoria">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="icon" href="icons/icon-192.png">
     <style>
         :root { --primary-color: #1a365d; --border-color: #2d3748; --bg-light: #f7fafc; }
         * { box-sizing: border-box; }
         body { font-family: Arial, sans-serif; font-size: 11pt; color: #000; background-color: #e2e8f0; margin: 0; padding: 20px; }
         .container { max-width: 900px; background: #fff; margin: 0 auto; padding: 30px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .header-title { border: 2px solid var(--border-color); padding: 10px; text-align: center; font-weight: bold; font-size: 14pt; background-color: #edf2f7; margin-bottom: 20px; }
-        .logo-tela { text-align: left; margin-bottom: 8px; min-height: 0; }
+        .logo-tela { text-align: left; margin-bottom: 8px; }
         .logo-tela img { max-height: 48px; }
 
-        /* Barra de fichas */
         .fichas-bar { background: #edf2f7; border: 1px solid #cbd5e0; border-radius: 5px; padding: 10px 12px; margin-bottom: 14px; }
         .fichas-bar .linha { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
         .fichas-bar select { flex: 1; min-width: 220px; border: 1px solid #a0aec0; border-radius: 4px; padding: 7px; background: #fff; font-size: 10pt; }
@@ -53,7 +54,6 @@
         .checkbox-item input[type="checkbox"] { margin-right: 8px; transform: scale(1.15); }
         .checkbox-item input[type="text"] { padding: 2px; font-size: 9.5pt; }
 
-        /* Benfeitorias */
         .benf-toggle { display: flex; align-items: center; gap: 8px; font-size: 10pt; font-weight: bold; color: var(--primary-color); background: #ebf8ff; border: 1px solid #bee3f8; border-radius: 4px; padding: 10px; cursor: pointer; }
         .benf-toggle input { transform: scale(1.3); }
         .benf-item { border: 1px solid #cbd5e0; border-radius: 4px; padding: 10px; margin-top: 10px; background: #fcfdff; }
@@ -84,7 +84,7 @@
 
         .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #1a202c; color: #fff; padding: 10px 18px; border-radius: 6px; font-size: 10pt; opacity: 0; transition: .3s; pointer-events: none; z-index: 50; max-width: 90%; text-align: center; }
         .toast.show { opacity: .94; }
-        .aviso-salvo { font-size: 8.5pt; color: #4a5568; text-align: right; min-height: 12px; }
+        .aviso-salvo { font-size: 8.5pt; color: #4a5568; }
 
         @media (max-width: 640px) {
             body { padding: 6px; }
@@ -99,7 +99,6 @@
     <div class="logo-tela" id="logoTela"></div>
     <div class="header-title">FICHA DE VISTORIA – ÁREAS URBANAS</div>
 
-    <!-- Fichas salvas no aparelho -->
     <div class="fichas-bar">
         <div class="linha">
             <select id="selFicha" onchange="trocarFicha(this.value)"></select>
@@ -112,7 +111,6 @@
     </div>
 
     <form id="vistoriaForm" autocomplete="off" onsubmit="return false">
-        <!-- Cabeçalho -->
         <fieldset>
             <legend>Informações Gerais</legend>
             <div class="form-row">
@@ -124,7 +122,6 @@
                 <div class="form-group"><label>NOME DO VISTORIADOR:</label><input type="text" name="nome_vistoriador"></div>
             </div>
         </fieldset>
-        <!-- Dados do Imóvel -->
         <fieldset>
             <legend>Dados do Imóvel</legend>
             <div class="form-row">
@@ -172,7 +169,6 @@
             </div>
             <div class="nota-benfeitorias">FAVOR DESCREVER AS BENFEITORIAS ATINGIDAS NA SEGUNDA FOLHA (FICHA DE BENFEITORIAS)</div>
         </fieldset>
-        <!-- Dados Cadastrais do Local -->
         <fieldset>
             <legend>Dados Cadastrais do Local</legend>
             <div class="checkbox-grid">
@@ -190,7 +186,6 @@
                 <label class="checkbox-item"><input type="checkbox" name="cad_outro"> <input type="text" name="cad_outro_txt" placeholder="Outro"></label>
             </div>
         </fieldset>
-        <!-- Documentos Anexos -->
         <fieldset>
             <legend>Documentos Anexos</legend>
             <div class="checkbox-grid">
@@ -208,7 +203,6 @@
                 <label class="checkbox-item"><input type="checkbox" name="doc_outro"> <input type="text" name="doc_outro_txt" placeholder="Outro"></label>
             </div>
         </fieldset>
-        <!-- Dados do Proprietário -->
         <fieldset>
             <legend>Dados do Proprietário</legend>
             <div class="form-row"><div class="form-group full"><label>NOME DO PROPRIETÁRIO:</label><input type="text" name="nome_proprietario"></div></div>
@@ -252,14 +246,12 @@
             <div class="form-row"><div class="form-group full"><label>OBSERVAÇÕES (OBS):</label><textarea name="observacoes"></textarea></div></div>
         </fieldset>
 
-        <!-- Ficha de Benfeitorias (opcional) -->
         <fieldset>
             <legend>Ficha de Benfeitorias (2ª folha)</legend>
             <label class="benf-toggle"><input type="checkbox" name="benf_ativa" onchange="renderBenf()"> Incluir Ficha de Benfeitorias <span class="dica" style="font-weight:normal">(desmarque em pré-vistoria)</span></label>
             <div id="benfArea"></div>
         </fieldset>
 
-        <!-- Seção de Fotos -->
         <fieldset class="photo-section">
             <legend>Registro Fotográfico</legend>
             <div class="photo-upload-box" id="dropZone" onclick="document.getElementById('photoInput').click()">
@@ -280,7 +272,6 @@
         <datalist id="lst_benf"><option>Casa</option><option>Sobrado</option><option>Edícula</option><option>Galpão</option><option>Barracão</option><option>Muro</option><option>Cerca</option><option>Portão</option><option>Piso / pavimento</option><option>Calçada</option><option>Cobertura / telheiro</option><option>Abrigo / guarita</option><option>Poço</option><option>Fossa</option><option>Árvore</option></datalist>
     </form>
 
-    <!-- Exportação -->
     <div class="actions">
         <h3>Opções de Exportação</h3>
         <button type="button" class="btn btn-pdf" id="bPdf" onclick="exportPDF()">Exportar PDF</button>
@@ -291,9 +282,7 @@
         <br>
         <button type="button" class="btn btn-sec" onclick="salvarBackup()">Salvar cópia de segurança</button>
         <button type="button" class="btn btn-sec" onclick="document.getElementById('abrirBackup').click()">Restaurar cópia</button>
-        <button type="button" class="btn btn-sec" onclick="document.getElementById('logoInput').click()">Logotipo do cabeçalho</button>
         <input type="file" id="abrirBackup" accept=".json" style="display:none" onchange="restaurarBackup(this)">
-        <input type="file" id="logoInput" accept="image/png,image/jpeg" style="display:none" onchange="definirLogo(this)">
     </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -318,9 +307,7 @@
 
 </script>
 <script>
-/* =========================================================
-   UTILITÁRIOS
-   ========================================================= */
+/* ===================== UTILITÁRIOS ===================== */
 const form = document.getElementById('vistoriaForm');
 const UFS = ["","AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
 document.querySelectorAll('.sel-uf').forEach(s => s.innerHTML = UFS.map(u => `<option value="${u}">${u}</option>`).join(''));
@@ -332,7 +319,6 @@ const hojeISO = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.ge
 const NA = '—';
 function toast(t, ms = 2600) { const e = document.getElementById('toast'); e.textContent = t; e.classList.add('show'); clearTimeout(e._t); e._t = setTimeout(() => e.classList.remove('show'), ms); }
 
-/* Máscaras: digitar só números */
 const mascaras = {
     cep: d => { d = d.slice(0, 8); return d.length > 5 ? d.slice(0,5) + '-' + d.slice(5) : d; },
     fone: d => { d = d.slice(0, 11);
@@ -372,7 +358,6 @@ document.getElementById('mesmoEndereco').addEventListener('change', e => {
     autoSalvar();
 });
 
-/* Botão N/A em cada campo de texto */
 function montarBotoesNA() {
     form.querySelectorAll('.form-group').forEach(g => {
         const inp = g.querySelector(':scope > input[type="text"], :scope > input[type="email"], :scope > input[type="tel"]');
@@ -385,9 +370,7 @@ function montarBotoesNA() {
 }
 function atualizarNA(el) { if (el && el._na) el._na.classList.toggle('on', el.value === NA); }
 
-/* =========================================================
-   ARMAZENAMENTO (IndexedDB – várias fichas, com fotos)
-   ========================================================= */
+/* ===================== ARMAZENAMENTO (IndexedDB) ===================== */
 let db;
 function abrirDB() {
     return new Promise((res, rej) => {
@@ -403,15 +386,9 @@ const dbTodas = () => pr(tx('fichas').getAll());
 const dbGet = id => pr(tx('fichas').get(id));
 const dbPut = f => pr(tx('fichas', 'readwrite').put(f));
 const dbDel = id => pr(tx('fichas', 'readwrite').delete(id));
-const cfgGet = k => pr(tx('config').get(k));
-const cfgSet = (k, val) => pr(tx('config', 'readwrite').put(val, k));
 
-let atual = null;      // ficha em edição
-let fotos = [];        // {src, leg}
-let benf = [];         // benfeitorias
-
+let atual = null, fotos = [], benf = [];
 function fichaVazia() { return { id: uid(), criada: Date.now(), campos: { data_vistoria: hojeISO() }, fotos: [], benf: [] }; }
-
 function coletar() {
     const d = {};
     [...form.elements].forEach(el => { if (el.name) d[el.name] = el.type === 'checkbox' ? el.checked : el.value; });
@@ -419,7 +396,7 @@ function coletar() {
 }
 function aplicar(f) {
     atual = f; form.reset();
-    Object.entries(f.campos || {}).forEach(([k, val]) => { const el = form.elements[k]; if (!el || el.length > 1 && !el.type) return; if (el.type === 'checkbox') el.checked = !!val; else el.value = val; });
+    Object.entries(f.campos || {}).forEach(([k, val]) => { const el = form.elements[k]; if (!el || (el.length > 1 && !el.type)) return; if (el.type === 'checkbox') el.checked = !!val; else el.value = val; });
     fotos = f.fotos || []; benf = f.benf || [];
     form.querySelectorAll('input').forEach(atualizarNA);
     form.querySelectorAll('.invalido,.faltando').forEach(e => e.classList.remove('invalido', 'faltando'));
@@ -436,7 +413,6 @@ function autoSalvar() {
     }, 400);
 }
 async function salvarAgora() { clearTimeout(tSalvar); atual = coletar(); await dbPut(atual); }
-
 function rotuloFicha(f) {
     const c = f.campos || {};
     const p = [c.referencia_cadastral || 'Sem referência', c.endereco_imovel || 'sem endereço', dataBR(c.data_vistoria)].filter(Boolean);
@@ -496,25 +472,17 @@ function restaurarBackup(inp) {
     r.readAsText(f); inp.value = '';
 }
 
-/* =========================================================
-   LOGOTIPO
-   ========================================================= */
-let logo = null; // dataURL
-async function definirLogo(inp) {
-    const f = inp.files[0]; inp.value = ''; if (!f) return;
-    const r = new FileReader();
-    r.onload = async () => { logo = r.result; await cfgSet('logo', logo); mostrarLogo(); toast('Logotipo definido para todas as fichas'); };
-    r.readAsDataURL(f);
+/* ===================== LOGOTIPO ITAZI (fixo) ===================== */
+let logo = null;
+async function carregarLogo() {
+    try {
+        const b = await (await fetch('icons/logo-itazi.png')).blob();
+        logo = await new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(b); });
+        document.getElementById('logoTela').innerHTML = `<img src="${logo}" alt="Itazi Engenharia">`;
+    } catch (e) { logo = null; }
 }
-function mostrarLogo() {
-    document.getElementById('logoTela').innerHTML = logo
-        ? `<img src="${logo}" alt="Logotipo"> <button type="button" class="btn-mini perigo" onclick="removerLogo()" style="vertical-align:top">remover</button>` : '';
-}
-async function removerLogo() { if (!confirm('Remover o logotipo?')) return; logo = null; await cfgSet('logo', null); mostrarLogo(); }
 
-/* =========================================================
-   GPS
-   ========================================================= */
+/* ===================== GPS ===================== */
 const fmtCoord = n => n.toFixed(6).replace('.', ',');
 function capturarGPS() {
     if (!navigator.geolocation) { toast('Este aparelho/navegador não oferece localização'); return; }
@@ -534,9 +502,7 @@ function textoCoordFoto() {
     const t = v('coordenadas'); return t && t !== NA ? t.replace(/\s*\(±.*\)$/, '') : '';
 }
 
-/* =========================================================
-   FOTOS (redução + carimbo de data/hora e coordenadas)
-   ========================================================= */
+/* ===================== FOTOS ===================== */
 function carregarImg(file) {
     return new Promise(res => { const r = new FileReader(); r.onload = () => { const i = new Image(); i.onload = () => res(i); i.src = r.result; }; r.readAsDataURL(file); });
 }
@@ -582,9 +548,7 @@ const dz = document.getElementById('dropZone');
 ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('arrastando'); }));
 dz.addEventListener('drop', e => handlePhotoUpload(e.dataTransfer.files));
 
-/* =========================================================
-   BENFEITORIAS
-   ========================================================= */
+/* ===================== BENFEITORIAS ===================== */
 const PADROES = ['', 'Rústico', 'Simples', 'Econômico', 'Médio', 'Superior', 'Fino'];
 const CONSERV = ['', 'Novo', 'Bom', 'Regular', 'Necessita reparos', 'Precário', 'Ruína'];
 const ATING = ['', 'Total', 'Parcial', 'Não atingida'];
@@ -620,9 +584,7 @@ function renderBenf() {
 }
 function removerBenf(i) { if (!confirm('Remover esta benfeitoria?')) return; benf.splice(i, 1); renderBenf(); autoSalvar(); }
 
-/* =========================================================
-   CONFERÊNCIA DE CAMPOS ESSENCIAIS (avisa, não bloqueia)
-   ========================================================= */
+/* ===================== CONFERÊNCIA (avisa, não bloqueia) ===================== */
 const ESSENCIAIS = [['data_vistoria','Data'],['nome_projeto','Nome do projeto'],['nome_vistoriador','Nome do vistoriador'],['endereco_imovel','Endereço do imóvel'],
                     ['municipio_imovel','Município'],['estado_imovel','Estado'],['utilizacao_imovel','Utilização do imóvel'],['nome_proprietario','Nome do proprietário']];
 function conferir() {
@@ -635,9 +597,7 @@ function conferir() {
     return ok;
 }
 
-/* =========================================================
-   PDF DIRETO (pdf-lib) – fonte Helvetica (métrica idêntica à Arial)
-   ========================================================= */
+/* ===================== PDF DIRETO (pdf-lib) ===================== */
 function relacaoFotos() {
     if (v('relacao_fotos')) return v('relacao_fotos');
     if (!fotos.length) return '';
@@ -652,17 +612,16 @@ const b64bytes = dataUrl => Uint8Array.from(atob(dataUrl.split(',')[1]), c => c.
 async function gerarPDF() {
     const { PDFDocument, StandardFonts, rgb } = PDFLib;
     const pdf = await PDFDocument.create();
-    pdf.setTitle('Ficha de Vistoria – Áreas Urbanas'); pdf.setCreator('Ficha de Vistoria'); pdf.setLanguage('pt-BR');
+    pdf.setTitle('Ficha de Vistoria – Áreas Urbanas'); pdf.setCreator('Itazi Engenharia – Ficha de Vistoria'); pdf.setLanguage('pt-BR');
     const F = await pdf.embedFont(StandardFonts.Helvetica), FB = await pdf.embedFont(StandardFonts.HelveticaBold);
     const MM = 72 / 25.4, W = 595.28, H = 841.89, ML = 13 * MM, MR = 13 * MM, MT = 12 * MM, MB = 12 * MM, CW = W - ML - MR;
-    const PRETO = rgb(0, 0, 0), AZUL = rgb(0.04, 0.16, 0.42), CINZA = rgb(0.35, 0.35, 0.35);
-    // tamanhos padronizados
+    const PRETO = rgb(0, 0, 0), AZUL = rgb(0.04, 0.16, 0.42);
     const T_TIT = 9.5, T_ROT = 8.5, T_VAL = 9.5, T_CHK = 8.5, ESP = 17.5;
 
     const cache = {};
     const limpa = (s, font) => [...String(s ?? '')].map(ch => {
         const k = (font === FB ? 'b' : 'r') + ch; if (k in cache) return cache[k];
-        let out = ch; try { font.widthOfTextAtSize(ch, 10); } catch (e) { out = ch === '✕' ? 'X' : (ch.normalize('NFD').replace(/[\u0300-\u036f]/g, '') || '?'); try { font.widthOfTextAtSize(out, 10); } catch (e2) { out = '?'; } }
+        let out = ch; try { font.widthOfTextAtSize(ch, 10); } catch (e) { out = ch.normalize('NFD').replace(/[\u0300-\u036f]/g, '') || '?'; try { font.widthOfTextAtSize(out, 10); } catch (e2) { out = '?'; } }
         return cache[k] = out;
     }).join('').replace(/\r/g, '');
     const larg = (s, f, t) => f.widthOfTextAtSize(limpa(s, f), t);
@@ -673,20 +632,19 @@ async function gerarPDF() {
     const logoImg = logo ? await (logo.startsWith('data:image/png') ? pdf.embedPng(b64bytes(logo)) : pdf.embedJpg(b64bytes(logo))) : null;
     function novaPagina() {
         page = pdf.addPage([W, H]); y = H - MT;
-        if (logoImg) { const h = 11 * MM, w = Math.min(logoImg.width * h / logoImg.height, 60 * MM); page.drawImage(logoImg, { x: ML, y: y - h, width: w, height: h * (w / (logoImg.width * h / logoImg.height)) }); y -= h + 3 * MM; }
+        if (logoImg) { const h = 11 * MM, w = logoImg.width * h / logoImg.height; page.drawImage(logoImg, { x: ML, y: y - h, width: w, height: h }); y -= h + 3 * MM; }
     }
     const txt = (s, x, yy, t = T_VAL, f = F, c = PRETO) => page.drawText(limpa(s, f), { x, y: yy, size: t, font: f, color: c });
-    function titulo(s, caixa = true) {
+    function titulo(s) {
         const h = 14;
-        if (caixa) page.drawRectangle({ x: ML, y: y - h, width: CW, height: h, borderColor: PRETO, borderWidth: 1.1 });
+        page.drawRectangle({ x: ML, y: y - h, width: CW, height: h, borderColor: PRETO, borderWidth: 1.1 });
         txt(s.toUpperCase(), ML + (CW - larg(s.toUpperCase(), FB, T_TIT)) / 2, y - h + 4, T_TIT, FB);
         y -= h + 6;
     }
-    // linha de campos: cols = [[rotulo, valor, peso, larguraFixaValor?]]
     function linha(cols) {
         const gap = 9, base = y - 11;
         const fix = cols.filter(c => c[3]); const livres = cols.filter(c => !c[3]);
-        let disponivel = CW - gap * (cols.length - 1) - fix.reduce((s, c) => s + larg(c[0].toUpperCase() + ':', F, T_ROT) + 4 + c[3], 0);
+        const disponivel = CW - gap * (cols.length - 1) - fix.reduce((s, c) => s + larg(c[0].toUpperCase() + ':', F, T_ROT) + 4 + c[3], 0);
         const somaPesos = livres.reduce((s, c) => s + (c[2] || 1), 0);
         let x = ML;
         cols.forEach(c => {
@@ -717,8 +675,15 @@ async function gerarPDF() {
         });
         y -= hC + 8;
     }
+    function obsPautada(texto) {
+        const xo = ML + larg('OBS:', F, T_ROT) + 4;
+        const ls = quebra(texto, F, T_VAL, ML + CW - xo - 4); const n = Math.max(3, ls.length);
+        txt('OBS:', ML, y - 11, T_ROT);
+        for (let i = 0; i < n; i++) { const b = y - 11 - i * 15; page.drawLine({ start: { x: xo, y: b - 2 }, end: { x: ML + CW, y: b - 2 }, thickness: 0.6, color: PRETO }); if (ls[i]) txt(ls[i], xo + 3, b + 0.5, T_VAL, F, AZUL); }
+        y -= n * 15 + 6;
+    }
 
-    /* ---------- FOLHA 1 ---------- */
+    /* FOLHA 1 */
     novaPagina();
     titulo('Ficha de Vistoria – Áreas Urbanas');
     linha([['Referência cadastral', v('referencia_cadastral'), 1], ['Data', dataBR(v('data_vistoria')), 0, 70]]);
@@ -755,16 +720,11 @@ async function gerarPDF() {
     linha([['RG', v('rg_conjuge')], ['CPF', v('cpf_conjuge')], ['Nacionalidade', v('nacionalidade_conjuge')]]);
     linha([['Profissão', v('profissao_conjuge')], ['Telefone', v('telefone_proprietario')]]);
     linha([['E-mail', v('email_proprietario')], ['E-mail', v('email_proprietario_2')]]);
-    // OBS pautada
-    { const xo = ML + larg('OBS:', F, T_ROT) + 4, wo = ML + CW - xo;
-      const ls = quebra(v('observacoes'), F, T_VAL, wo - 4); const n = Math.max(3, ls.length);
-      txt('OBS:', ML, y - 11, T_ROT);
-      for (let i = 0; i < n; i++) { const b = y - 11 - i * 15; page.drawLine({ start: { x: xo, y: b - 2 }, end: { x: ML + CW, y: b - 2 }, thickness: 0.6, color: PRETO }); if (ls[i]) txt(ls[i], xo + 3, b + 0.5, T_VAL, F, AZUL); }
-      y -= n * 15 + 6; }
+    obsPautada(v('observacoes'));
 
     const idLinha = () => [v('referencia_cadastral') && 'REF. CADASTRAL: ' + v('referencia_cadastral'), v('nome_projeto') && 'PROJETO: ' + v('nome_projeto'), v('data_vistoria') && 'DATA: ' + dataBR(v('data_vistoria'))].filter(Boolean).join('     ');
 
-    /* ---------- FOLHA 2: BENFEITORIAS (opcional) ---------- */
+    /* FOLHA 2: BENFEITORIAS (opcional) */
     if (v('benf_ativa')) {
         novaPagina(); titulo('Ficha de Benfeitorias');
         linha([['Referência cadastral', v('referencia_cadastral'), 1], ['Data', dataBR(v('data_vistoria')), 0, 70]]);
@@ -772,13 +732,12 @@ async function gerarPDF() {
         linha([['Endereço do imóvel', v('endereco_imovel')]]);
         y -= 4;
         const cols = [['Nº', 20], ['DESCRIÇÃO DA BENFEITORIA', 0], ['ÁREA/QTDE', 58], ['PADRÃO', 58], ['CONSERVAÇÃO', 72], ['IDADE', 36], ['ATINGIDA', 52], ['FOTOS', 40]];
-        const fixo = cols.reduce((s, c) => s + c[1], 0); cols[1][1] = CW - fixo;
+        cols[1][1] = CW - cols.reduce((s, c) => s + c[1], 0);
         const cab = 14, pad = 3;
         const desenhaCab = () => { let x = ML; page.drawRectangle({ x: ML, y: y - cab, width: CW, height: cab, color: rgb(0.92, 0.94, 0.97), borderColor: PRETO, borderWidth: 0.8 });
             cols.forEach(c => { txt(c[0], x + (c[1] - larg(c[0], FB, 7.5)) / 2, y - cab + 4.5, 7.5, FB); x += c[1]; if (x < ML + CW - 1) page.drawLine({ start: { x, y }, end: { x, y: y - cab }, thickness: 0.8, color: PRETO }); }); y -= cab; };
         desenhaCab();
-        const lista = benf.length ? benf : [benfVazia()];
-        lista.forEach((b, i) => {
+        (benf.length ? benf : [benfVazia()]).forEach((b, i) => {
             const desc = [b.desc, b.obs && '(' + b.obs + ')'].filter(Boolean).join(' ');
             const valores = [String(i + 1).padStart(2, '0'), desc, b.qtd ? `${b.qtd} ${b.un}` : '', b.padrao, b.conserv, b.idade ? b.idade + ' anos' : '', b.ating, b.fotosRef];
             const linhasCel = valores.map((val, k) => k === 1 ? quebra(val, F, T_CHK, cols[k][1] - pad * 2) : [cabe(val, F, T_CHK, cols[k][1] - pad * 2)]);
@@ -790,13 +749,10 @@ async function gerarPDF() {
             y -= hL;
         });
         y -= 12;
-        const obsB = atual?.benfObs || '';
-        const xo = ML + larg('OBS:', F, T_ROT) + 4, ls = quebra(obsB, F, T_VAL, ML + CW - xo - 4), n = Math.max(3, ls.length);
-        txt('OBS:', ML, y - 11, T_ROT);
-        for (let i = 0; i < n; i++) { const bb = y - 11 - i * 15; page.drawLine({ start: { x: xo, y: bb - 2 }, end: { x: ML + CW, y: bb - 2 }, thickness: 0.6, color: PRETO }); if (ls[i]) txt(ls[i], xo + 3, bb + 0.5, T_VAL, F, AZUL); }
+        obsPautada(atual?.benfObs || '');
     }
 
-    /* ---------- RELAÇÃO DE FOTOS: 4 por página ---------- */
+    /* RELAÇÃO DE FOTOS: 4 por página */
     for (let p = 0; p < fotos.length; p += 4) {
         novaPagina(); titulo(p ? 'Relação de Fotos (continuação)' : 'Relação de Fotos');
         const id = idLinha(); if (id) { txt(cabe(id, F, T_ROT, CW), ML, y - 4, T_ROT); y -= 14; }
@@ -806,7 +762,7 @@ async function gerarPDF() {
             const x = ML + col * (cw + gap), top = y - lin * (ch + gap);
             page.drawRectangle({ x, y: top - ch, width: cw, height: ch, borderColor: PRETO, borderWidth: 0.7 });
             const img = await pdf.embedJpg(b64bytes(f.src));
-            const aw = cw - 8, ah = ch - legH - 8, esc2 = Math.min(aw / img.width, ah / img.height), iw = img.width * esc2, ih = img.height * esc2;
+            const aw = cw - 8, ah = ch - legH - 8, e2 = Math.min(aw / img.width, ah / img.height), iw = img.width * e2, ih = img.height * e2;
             page.drawImage(img, { x: x + 4 + (aw - iw) / 2, y: top - 4 - ah + (ah - ih) / 2, width: iw, height: ih });
             const leg = `FOTO ${String(p + k + 1).padStart(2, '0')}`;
             txt(leg, x + 4, top - ch + 5, T_ROT, FB);
@@ -833,9 +789,7 @@ async function compartilharPDF() {
     } else { baixar(f, f.name); toast('Este aparelho não permite compartilhar arquivos – PDF baixado'); }
 }
 
-/* =========================================================
-   WORD (.doc) – mesma ficha em tabelas, Arial
-   ========================================================= */
+/* ===================== WORD (.doc) ===================== */
 function exportDOC() {
     if (!conferir()) return;
     const tl = t => `<table width="100%" cellspacing="0" cellpadding="3" style="border:1.5pt solid #000;margin:8pt 0 4pt"><tr><td align="center" style="font-weight:bold;font-size:9.5pt">${t}</td></tr></table>`;
@@ -892,9 +846,7 @@ function exportDOC() {
     baixar(new Blob(['\ufeff' + html], { type: 'application/msword' }), nomeArquivo('doc'));
 }
 
-/* =========================================================
-   PLANILHAS (.CSV padrão brasileiro – separador ";")
-   ========================================================= */
+/* ===================== PLANILHAS (.CSV ";") ===================== */
 const csvCel = c => `"${String(c ?? '').replace(/"/g, '""')}"`;
 function camposComRotulo() {
     const out = [];
@@ -937,26 +889,23 @@ async function exportProjetoCSV() {
         ('Projeto_' + (proj || 'todas_as_fichas') + '_' + hojeISO()).replace(/[^\w\-]+/g, '_') + '.csv');
     toast(`Planilha com ${todas.length} ficha(s)` + (proj ? ` do projeto ${proj}` : ''));
 }
-
 function baixar(blob, nome) {
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nome;
     document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
 
-/* =========================================================
-   INÍCIO
-   ========================================================= */
+/* ===================== INÍCIO ===================== */
 (async () => {
     montarBotoesNA();
     await abrirDB();
-    logo = await cfgGet('logo'); mostrarLogo();
+    await carregarLogo();
     let todas = (await dbTodas()).sort((a, b) => (b.alterada || b.criada || 0) - (a.alterada || a.criada || 0));
-    // migração do rascunho da versão anterior (localStorage)
     try { const s = localStorage.getItem('ficha_vistoria_urbana'); if (s && !todas.length) { const o = JSON.parse(s); const f = fichaVazia(); f.campos = o.campos || {}; f.fotos = o.fotos || []; await dbPut(f); todas = [f]; localStorage.removeItem('ficha_vistoria_urbana'); } } catch (e) {}
     if (!todas.length) { const f = fichaVazia(); await dbPut(f); todas = [f]; }
     aplicar(todas[0]); listarFichas();
     if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
 })();
 </script>
+<script src="app-extras.js"></script>
 </body>
 </html>
