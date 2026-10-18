@@ -1,5 +1,5 @@
-// Funcionamento offline. A CADA atualização publicada, troque "ficha-6" por "ficha-7" (e assim por diante).
-const CACHE = "ficha-6";
+// Funcionamento offline. A CADA atualização publicada, troque "ficha-7" por "ficha-8" (e assim por diante).
+const CACHE = "ficha-7";
 const ARQ = ["./", "./index.html", "./app-extras.js", "./manifest.json", "./icons/logo-itazi.png", "./docx.js",
              "./icons/icon-192.png", "./icons/icon-512.png", "./icons/apple-touch-icon.png"];
 self.addEventListener("install", e => {
@@ -12,7 +12,7 @@ self.addEventListener("activate", e => {
 });
 self.addEventListener("fetch", e => {
   const req = e.request;
-  if (req.method !== "GET" || !req.url.startsWith(self.location.origin)) return;
+  if (req.method !== "GET" || !req.url.startsWith(self.location.origin)) return;   // CEP (ViaCEP) e outros sites passam direto
   e.respondWith(
     fetch(req).then(r => {
       if (r.ok) { const c = r.clone(); caches.open(CACHE).then(x => x.put(req, c)); }

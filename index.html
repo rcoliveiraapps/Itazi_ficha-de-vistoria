@@ -34,8 +34,11 @@
         .form-group { flex: 1; min-width: 160px; display: flex; flex-direction: column; position: relative; }
         .form-group.full { flex: 100%; }
         .form-group.uf { flex: 0 0 80px; min-width: 80px; }
+        .form-group.cep { flex: 0 0 170px; min-width: 150px; }
+        .form-group.pais { flex: 0 0 130px; min-width: 120px; }
         label { font-size: 9pt; font-weight: bold; margin-bottom: 3px; color: #2d3748; }
         .dica { font-size: 8pt; color: #718096; margin-top: 2px; font-weight: normal; }
+        .dica.ok { color: #2f855a; } .dica.erro { color: #c53030; }
         input[type="text"], input[type="date"], input[type="email"], input[type="tel"], input[type="number"], select, textarea {
             border: none; border-bottom: 1px solid #718096; padding: 5px 2px; font-size: 10pt; font-family: Arial, sans-serif; outline: none; background: transparent; width: 100%;
         }
@@ -45,6 +48,10 @@
         textarea { resize: vertical; min-height: 60px; border: 1px solid #718096; padding: 8px; }
         .na-btn { position: absolute; right: 0; top: -2px; border: 1px solid #cbd5e0; background: #f7fafc; color: #4a5568; font-size: 7.5pt; padding: 1px 5px; border-radius: 3px; cursor: pointer; font-family: Arial; }
         .na-btn.on { background: #4a5568; color: #fff; border-color: #4a5568; }
+        /* unidade fixa dentro do campo (não some ao digitar) */
+        .com-un { position: relative; display: block; }
+        .com-un input { padding-right: 30px; }
+        .com-un .un { position: absolute; right: 4px; bottom: 6px; color: #4a5568; font-size: 9.5pt; font-weight: bold; pointer-events: none; }
         .nota-benfeitorias { font-size: 9pt; font-weight: bold; margin-top: 4px; }
         .gps-box { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
         .gps-box input { flex: 1; min-width: 220px; }
@@ -89,12 +96,16 @@
         .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #1a202c; color: #fff; padding: 10px 18px; border-radius: 6px; font-size: 10pt; opacity: 0; transition: .3s; pointer-events: none; z-index: 50; max-width: 90%; text-align: center; }
         .toast.show { opacity: .94; }
         .aviso-salvo { font-size: 8.5pt; color: #4a5568; }
+        #modalAviso { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: none; align-items: center; justify-content: center; z-index: 98; padding: 14px; }
+        #modalAviso > div { background: #fff; border-radius: 10px; max-width: 440px; width: 100%; padding: 20px; font: 11pt Arial, sans-serif; line-height: 1.5; }
+        #modalAviso h3 { margin: 0 0 10px; color: #1a365d; } #modalAviso ol { padding-left: 20px; margin: 0 0 14px; }
 
         @media (max-width: 640px) {
             body { padding: 6px; }
             .container { padding: 14px; }
             .checkbox-grid { grid-template-columns: 1fr 1fr; grid-template-rows: none; grid-auto-flow: row; }
             .btn { width: calc(100% - 10px); }
+            .form-group.cep, .form-group.pais { flex: 1 1 140px; }
         }
     </style>
 </head>
@@ -118,25 +129,32 @@
         <fieldset>
             <legend>Informações Gerais</legend>
             <div class="form-row">
+                <div class="form-group full"><label>NOME DO PROJETO:</label><input type="text" name="nome_projeto"></div>
+            </div>
+            <div class="form-row">
                 <div class="form-group"><label>REFERÊNCIA CADASTRAL:</label><input type="text" name="referencia_cadastral"></div>
                 <div class="form-group"><label>DATA:</label><input type="date" name="data_vistoria"></div>
             </div>
             <div class="form-row">
-                <div class="form-group"><label>NOME DO PROJETO:</label><input type="text" name="nome_projeto"></div>
-                <div class="form-group"><label>NOME DO VISTORIADOR:</label><input type="text" name="nome_vistoriador"></div>
+                <div class="form-group full"><label>NOME DO VISTORIADOR:</label><input type="text" name="nome_vistoriador"></div>
             </div>
         </fieldset>
         <fieldset>
             <legend>Dados do Imóvel</legend>
             <div class="form-row">
-                <div class="form-group" style="flex: 3;"><label>ENDEREÇO DO IMÓVEL:</label><input type="text" name="endereco_imovel"></div>
-                <div class="form-group" style="flex: 1;"><label>CEP:</label><input type="text" name="cep_imovel" data-mask="cep" inputmode="numeric"></div>
+                <div class="form-group cep">
+                    <label>CEP:</label><input type="text" name="cep_imovel" data-mask="cep" data-cep="imovel" inputmode="numeric" placeholder="00000-000">
+                    <span class="dica" id="cepInfo_imovel">Preenche o endereço automaticamente</span>
+                </div>
+                <div class="form-group" style="flex: 3;"><label>ENDEREÇO DO IMÓVEL:</label><input type="text" name="endereco_imovel" placeholder="Rua / avenida / rodovia, número"></div>
             </div>
             <div class="form-row">
                 <div class="form-group"><label>BAIRRO:</label><input type="text" name="bairro_imovel"></div>
                 <div class="form-group"><label>MUNICÍPIO:</label><input type="text" name="municipio_imovel"></div>
                 <div class="form-group uf"><label>ESTADO:</label><select name="estado_imovel" class="sel-uf"></select></div>
+                <div class="form-group pais"><label>PAÍS:</label><input type="text" name="pais_imovel" value="Brasil"></div>
             </div>
+            <input type="hidden" name="ibge_imovel" data-rot="CÓDIGO IBGE DO MUNICÍPIO">
             <div class="form-row">
                 <div class="form-group full">
                     <label>COORDENADAS (LAT/LONG):</label>
@@ -144,12 +162,12 @@
                         <input type="text" name="coordenadas" placeholder="Toque em “Capturar posição” no local do imóvel">
                         <button type="button" class="btn-mini" onclick="capturarGPS()">📍 Capturar posição</button>
                     </div>
-                    <span class="dica">Graus decimais, obtidos pelo GPS do aparelho. Também entram na marca das fotos.</span>
+                    <span class="dica">Precisão: Ótima até 5 m · Boa 5–15 m · Ruim 15–30 m · Péssima acima de 30 m. As coordenadas também entram na marca das fotos.</span>
                 </div>
             </div>
             <div class="form-row">
-                <div class="form-group"><label>ÁREA DO TERRENO:</label><input type="text" name="area_terreno" placeholder="m²"></div>
-                <div class="form-group"><label>TESTADA:</label><input type="text" name="testada" placeholder="m"></div>
+                <div class="form-group"><label>ÁREA DO TERRENO:</label><span class="com-un"><input type="text" name="area_terreno" data-un="m²" inputmode="decimal"><span class="un">m²</span></span></div>
+                <div class="form-group"><label>TESTADA:</label><span class="com-un"><input type="text" name="testada" data-un="m" inputmode="decimal"><span class="un">m</span></span></div>
                 <div class="form-group"><label>LOTE:</label><input type="text" name="lote"></div>
                 <div class="form-group"><label>QUADRA:</label><input type="text" name="quadra"></div>
             </div>
@@ -220,18 +238,21 @@
                 <div class="form-group"><label>ESTADO CIVIL:</label><input type="text" name="estado_civil_proprietario" list="lst_civil"></div>
             </div>
             <div class="form-row"><div class="form-group full"><label>VÍNCULO COM IMÓVEL:</label><input type="text" name="vinculo_imovel" list="lst_vinculo"></div></div>
+            <label class="checkbox-item dica" style="margin:0 0 8px"><input type="checkbox" id="mesmoEndereco"> Endereço do proprietário é o mesmo do imóvel</label>
             <div class="form-row">
-                <div class="form-group full">
-                    <label>ENDEREÇO DO PROPRIETÁRIO:</label><input type="text" name="endereco_proprietario">
-                    <label class="checkbox-item dica" style="margin-top:4px"><input type="checkbox" id="mesmoEndereco"> Mesmo endereço do imóvel</label>
+                <div class="form-group cep">
+                    <label>CEP:</label><input type="text" name="cep_proprietario" data-mask="cep" data-cep="proprietario" inputmode="numeric" placeholder="00000-000">
+                    <span class="dica" id="cepInfo_proprietario">Preenche o endereço automaticamente</span>
                 </div>
+                <div class="form-group" style="flex: 3;"><label>ENDEREÇO DO PROPRIETÁRIO:</label><input type="text" name="endereco_proprietario" placeholder="Rua / avenida, número"></div>
             </div>
             <div class="form-row">
                 <div class="form-group"><label>BAIRRO:</label><input type="text" name="bairro_proprietario"></div>
-                <div class="form-group"><label>CEP:</label><input type="text" name="cep_proprietario" data-mask="cep" inputmode="numeric"></div>
                 <div class="form-group"><label>MUNICÍPIO:</label><input type="text" name="municipio_proprietario"></div>
                 <div class="form-group uf"><label>ESTADO:</label><select name="estado_proprietario" class="sel-uf"></select></div>
+                <div class="form-group pais"><label>PAÍS:</label><input type="text" name="pais_proprietario" value="Brasil"></div>
             </div>
+            <input type="hidden" name="ibge_proprietario" data-rot="CÓDIGO IBGE DO MUNICÍPIO (PROPRIETÁRIO)">
             <hr style="border: 0; border-top: 1px dashed #cbd5e0; margin: 15px 0;">
             <div class="form-row"><div class="form-group full"><label>NOME DO CÔNJUGE:</label><input type="text" name="nome_conjuge"></div></div>
             <div class="form-row">
@@ -259,7 +280,7 @@
         <fieldset class="photo-section">
             <legend>Registro Fotográfico</legend>
             <div class="foto-botoes">
-                <button type="button" class="btn-foto camera" onclick="document.getElementById('cameraInput').click()">📷 TIRAR FOTO</button>
+                <button type="button" class="btn-foto camera" id="bCamera" onclick="abrirCamera()">📷 TIRAR FOTO</button>
                 <button type="button" class="btn-foto galeria" onclick="document.getElementById('photoInput').click()">🖼️ ESCOLHER DA GALERIA</button>
             </div>
             <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoUpload(event.target.files); event.target.value='';">
@@ -294,6 +315,7 @@
     </div>
 </div>
 <div class="toast" id="toast"></div>
+<div id="modalAviso"><div><h3 id="avTit"></h3><ol id="avPassos"></ol><button type="button" class="btn" style="width:100%;margin:0" onclick="fecharAviso()">Entendi</button></div></div>
 
 <script>
 !function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"function"==typeof define&&define.amd?define(["exports"],e):e((t=t||self).PDFLib={})}(this,(function(t){"use strict";
@@ -326,6 +348,14 @@ const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 
 const hojeISO = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
 const NA = '—';
 function toast(t, ms = 2600) { const e = document.getElementById('toast'); e.textContent = t; e.classList.add('show'); clearTimeout(e._t); e._t = setTimeout(() => e.classList.remove('show'), ms); }
+function aviso(tit, passos) {
+    document.getElementById('avTit').textContent = tit;
+    document.getElementById('avPassos').innerHTML = passos.map(p => '<li>' + p + '</li>').join('');
+    document.getElementById('modalAviso').style.display = 'flex';
+}
+function fecharAviso() { document.getElementById('modalAviso').style.display = 'none'; }
+/* valor com unidade (m², m) para PDF/Word */
+const comUn = (n, un) => { const x = v(n); return x && x !== NA && !/m²?\s*$/i.test(x) ? `${x} ${un}` : x; };
 
 const mascaras = {
     cep: d => { d = d.slice(0, 8); return d.length > 5 ? d.slice(0,5) + '-' + d.slice(5) : d; },
@@ -353,24 +383,26 @@ form.addEventListener('input', e => {
         el.classList.toggle('invalido', !ok);
         el.title = ok ? '' : 'CPF/CNPJ com dígito verificador inválido. Confira o número.';
     }
+    if (el.dataset.cep && el.value.replace(/\D/g, '').length === 8) buscarCEP(el.dataset.cep);
     el.classList.remove('faltando');
     if (el.name === 'coordenadas' && atual) delete atual.gps;   // coordenada editada à mão ou N/A: não usa mais a do GPS
     atualizarNA(el);
     autoSalvar();
 });
 form.addEventListener('change', async e => { e.target.classList.remove('faltando');
-    if (e.target.name === 'nome_projeto' || e.target.name === 'referencia_cadastral' || e.target.name === 'endereco_imovel') { await salvarAgora(); listarFichas(); } else autoSalvar(); });
+    if (['nome_projeto','referencia_cadastral','endereco_imovel'].includes(e.target.name)) { await salvarAgora(); listarFichas(); } else autoSalvar(); });
 ['cad','doc'].forEach(p => form.elements[p + '_outro_txt'].addEventListener('input', e => { form.elements[p + '_outro'].checked = !!e.target.value.trim(); }));
 document.getElementById('mesmoEndereco').addEventListener('change', e => {
     if (!e.target.checked) return;
-    [['endereco_imovel','endereco_proprietario'],['bairro_imovel','bairro_proprietario'],['cep_imovel','cep_proprietario'],
-     ['municipio_imovel','municipio_proprietario'],['estado_imovel','estado_proprietario']].forEach(([a,b]) => form.elements[b].value = form.elements[a].value);
+    ['cep','endereco','bairro','municipio','estado','pais','ibge'].forEach(k => form.elements[k + '_proprietario'].value = form.elements[k + '_imovel'].value);
+    form.querySelectorAll('input').forEach(atualizarNA);
+    document.getElementById('cepInfo_proprietario').textContent = 'Copiado do imóvel';
     autoSalvar();
 });
 
 function montarBotoesNA() {
     form.querySelectorAll('.form-group').forEach(g => {
-        const inp = g.querySelector(':scope > input[type="text"], :scope > input[type="email"], :scope > input[type="tel"]');
+        const inp = g.querySelector(':scope > input[type="text"], :scope > input[type="email"], :scope > input[type="tel"], :scope > .com-un > input');
         if (!inp || inp.name === 'relacao_fotos' || g.querySelector('.na-btn')) return;
         const b = document.createElement('button');
         b.type = 'button'; b.className = 'na-btn'; b.textContent = 'N/A'; b.title = 'Não se aplica / sem informação (imprime “—”)';
@@ -378,7 +410,47 @@ function montarBotoesNA() {
         g.appendChild(b); inp._na = b;
     });
 }
-function atualizarNA(el) { if (el && el._na) el._na.classList.toggle('on', el.value === NA); }
+function atualizarNA(el) {
+    if (!el) return;
+    if (el._na) el._na.classList.toggle('on', el.value === NA);
+    const un = el.parentElement && el.parentElement.classList.contains('com-un') ? el.parentElement.querySelector('.un') : null;
+    if (un) un.style.display = el.value === NA ? 'none' : '';
+}
+
+/* ===================== CEP → ENDEREÇO (ViaCEP / IBGE) ===================== */
+const ultimoCEP = {};
+async function buscarCEP(grupo) {
+    const cep = v('cep_' + grupo).replace(/\D/g, ''), info = document.getElementById('cepInfo_' + grupo);
+    if (cep.length !== 8 || ultimoCEP[grupo] === cep) return;
+    ultimoCEP[grupo] = cep;
+    if (!navigator.onLine) { info.className = 'dica erro'; info.textContent = 'Sem internet – preencha o endereço manualmente'; return; }
+    info.className = 'dica'; info.textContent = 'Buscando endereço…';
+    try {
+        const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), 8000);
+        const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`, { signal: ctrl.signal }); clearTimeout(t);
+        const j = await r.json();
+        if (v('cep_' + grupo).replace(/\D/g, '') !== cep) return;   // CEP mudou durante a busca
+        if (j.erro) { info.className = 'dica erro'; info.textContent = 'CEP não encontrado – confira o número ou preencha manualmente'; return; }
+        // preenche só campos vazios ou que tinham sido preenchidos pela busca anterior
+        const pre = (nome, val) => { const el = form.elements[nome]; if (!el || !val) return;
+            if (!el.value.trim() || el.value === el.dataset.auto) { el.value = val; el.dataset.auto = val; atualizarNA(el); } };
+        const endEl = form.elements['endereco_' + grupo];
+        const endAntes = endEl.value;
+        pre('endereco_' + grupo, j.logradouro);
+        pre('bairro_' + grupo, j.bairro);
+        pre('municipio_' + grupo, j.localidade);
+        pre('estado_' + grupo, j.uf);
+        pre('pais_' + grupo, 'Brasil');
+        form.elements['ibge_' + grupo].value = j.ibge || '';
+        info.className = 'dica ok';
+        info.textContent = `${j.localidade}/${j.uf}` + (j.ibge ? ` · IBGE ${j.ibge}` : '') + (endEl.value !== endAntes && j.logradouro ? ' – complete o número' : '');
+        if (endEl.value !== endAntes && j.logradouro) { endEl.focus(); endEl.setSelectionRange(endEl.value.length, endEl.value.length); }
+        autoSalvar();
+    } catch (e) {
+        ultimoCEP[grupo] = '';
+        info.className = 'dica erro'; info.textContent = 'Não foi possível consultar o CEP agora – preencha manualmente';
+    }
+}
 
 /* ===================== ARMAZENAMENTO (IndexedDB) ===================== */
 let db;
@@ -398,7 +470,7 @@ const dbPut = f => pr(tx('fichas', 'readwrite').put(f));
 const dbDel = id => pr(tx('fichas', 'readwrite').delete(id));
 
 let atual = null, fotos = [], benf = [];
-function fichaVazia() { return { id: uid(), criada: Date.now(), campos: { data_vistoria: hojeISO() }, fotos: [], benf: [] }; }
+function fichaVazia() { return { id: uid(), criada: Date.now(), campos: { data_vistoria: hojeISO(), pais_imovel: 'Brasil', pais_proprietario: 'Brasil' }, fotos: [], benf: [] }; }
 function coletar() {
     const d = {};
     [...form.elements].forEach(el => { if (el.name) d[el.name] = el.type === 'checkbox' ? el.checked : el.value; });
@@ -406,11 +478,14 @@ function coletar() {
 }
 function aplicar(f) {
     atual = f; form.reset();
+    form.querySelectorAll('[data-auto]').forEach(el => delete el.dataset.auto);
     Object.entries(f.campos || {}).forEach(([k, val]) => { const el = form.elements[k]; if (!el || (el.length > 1 && !el.type)) return; if (el.type === 'checkbox') el.checked = !!val; else el.value = val; });
     fotos = f.fotos || []; benf = f.benf || [];
     form.querySelectorAll('input').forEach(atualizarNA);
     form.querySelectorAll('.invalido,.faltando').forEach(e => e.classList.remove('invalido', 'faltando'));
     document.getElementById('mesmoEndereco').checked = false;
+    ['imovel','proprietario'].forEach(g => { ultimoCEP[g] = v('cep_' + g).replace(/\D/g, ''); const i = document.getElementById('cepInfo_' + g);
+        i.className = 'dica'; i.textContent = v('ibge_' + g) ? `${v('municipio_' + g)}/${v('estado_' + g)} · IBGE ${v('ibge_' + g)}` : 'Preenche o endereço automaticamente'; });
     renderFotos(); renderBenf();
 }
 let tSalvar;
@@ -447,8 +522,9 @@ async function novaFichaMesmoProjeto() {
     const re = new RegExp('^' + proj.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '-(\\d+)$');
     const maior = todas.reduce((m, f) => { const x = (f.campos?.referencia_cadastral || '').match(re); return x ? Math.max(m, +x[1]) : m; }, 0);
     const f = fichaVazia();
-    f.campos = { nome_projeto: proj, nome_vistoriador: v('nome_vistoriador'), data_vistoria: v('data_vistoria') || hojeISO(),
-                 referencia_cadastral: `${proj}-${String(maior + 1).padStart(3, '0')}`, municipio_imovel: v('municipio_imovel'), estado_imovel: v('estado_imovel') };
+    Object.assign(f.campos, { nome_projeto: proj, nome_vistoriador: v('nome_vistoriador'), data_vistoria: v('data_vistoria') || hojeISO(),
+                 referencia_cadastral: `${proj}-${String(maior + 1).padStart(3, '0')}`, municipio_imovel: v('municipio_imovel'),
+                 estado_imovel: v('estado_imovel'), pais_imovel: v('pais_imovel') || 'Brasil' });
     await dbPut(f); aplicar(f); listarFichas(); toast('Ficha ' + f.campos.referencia_cadastral + ' criada');
 }
 async function duplicarFicha() {
@@ -497,15 +573,16 @@ async function carregarLogo() {
 
 /* ===================== GPS ===================== */
 const fmtCoord = n => n.toFixed(6).replace('.', ',');
+const classePrec = m => m <= 5 ? 'Ótima' : m <= 15 ? 'Boa' : m <= 30 ? 'Ruim' : 'Péssima';
 function capturarGPS() {
     if (!navigator.geolocation) { toast('Este aparelho/navegador não oferece localização'); return; }
     toast('Obtendo posição… aguarde alguns segundos ao ar livre', 6000);
     navigator.geolocation.getCurrentPosition(p => {
-        const { latitude, longitude, accuracy } = p.coords;
-        form.elements.coordenadas.value = `Lat ${fmtCoord(latitude)}  Long ${fmtCoord(longitude)}  (±${Math.round(accuracy)} m)`;
-        atual.gps = { lat: latitude, lon: longitude, prec: accuracy };
+        const { latitude, longitude, accuracy } = p.coords, cl = classePrec(accuracy);
+        form.elements.coordenadas.value = `Lat ${fmtCoord(latitude)}  Long ${fmtCoord(longitude)}  (±${Math.round(accuracy)} m – ${cl})`;
+        atual.gps = { lat: latitude, lon: longitude, prec: accuracy, classe: cl };
         atualizarNA(form.elements.coordenadas); autoSalvar();
-        toast(accuracy > 30 ? `Posição obtida, mas com baixa precisão (±${Math.round(accuracy)} m). Tente novamente em área aberta.` : 'Posição capturada');
+        toast(accuracy > 15 ? `Precisão ${cl.toLowerCase()} (±${Math.round(accuracy)} m). Vá para área aberta e capture de novo.` : `Posição capturada – precisão ${cl.toLowerCase()} (±${Math.round(accuracy)} m)`, 5000);
     }, err => {
         toast(err.code === 1 ? 'Permissão de localização negada. Libere nas configurações do navegador.' : 'Não foi possível obter a posição. Tente novamente.', 5000);
     }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
@@ -515,18 +592,24 @@ function textoCoordFoto() {
     const t = v('coordenadas'); return t && t !== NA ? t.replace(/\s*\(±.*\)$/, '') : '';
 }
 
-/* ===================== FOTOS ===================== */
-function carregarImg(file) {
-    return new Promise((res, rej) => { const r = new FileReader();
-        r.onerror = () => rej(new Error('leitura'));
-        r.onload = () => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('formato')); i.src = r.result; };
-        r.readAsDataURL(file); });
+/* ===================== FOTOS (leve na memória) ===================== */
+const MAXF = 1600;
+const ehHEIC = f => /hei[cf]/i.test(f.type || '') || /\.(heic|heif)$/i.test(f.name || '');
+async function decodificar(file) {
+    if (window.createImageBitmap) {   // abre a foto já reduzida, sem carregar 50–200 MP na memória
+        try { return await createImageBitmap(file, { resizeWidth: MAXF, resizeQuality: 'medium', imageOrientation: 'from-image' }); } catch (e) {}
+        try { return await createImageBitmap(file, { imageOrientation: 'from-image' }); } catch (e) {}
+    }
+    const url = URL.createObjectURL(file);
+    try { const img = new Image(); img.src = url; await img.decode(); return img; }
+    finally { setTimeout(() => URL.revokeObjectURL(url), 3000); }
 }
 async function processarFoto(file) {
-    const img = await carregarImg(file);
-    const M = 1600, f = Math.min(1, M / Math.max(img.width, img.height));
-    const c = document.createElement('canvas'); c.width = Math.round(img.width * f); c.height = Math.round(img.height * f);
-    const g = c.getContext('2d'); g.drawImage(img, 0, 0, c.width, c.height);
+    const bmp = await decodificar(file);
+    const f = Math.min(1, MAXF / Math.max(bmp.width, bmp.height));
+    const c = document.createElement('canvas'); c.width = Math.round(bmp.width * f); c.height = Math.round(bmp.height * f);
+    const g = c.getContext('2d'); g.drawImage(bmp, 0, 0, c.width, c.height);
+    if (bmp.close) bmp.close();
     const quando = new Date(file.lastModified || Date.now());
     const linhas = [quando.toLocaleDateString('pt-BR') + '  ' + quando.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })];
     const coord = textoCoordFoto(); if (coord) linhas.push(coord);
@@ -536,16 +619,39 @@ async function processarFoto(file) {
     g.fillStyle = 'rgba(0,0,0,0.55)'; g.fillRect(c.width - larg, c.height - alt, larg, alt);
     g.fillStyle = '#fff'; g.textBaseline = 'top';
     linhas.forEach((l, i) => g.fillText(l, c.width - larg + pad, c.height - alt + pad * 0.6 + i * fs * 1.25));
-    return c.toDataURL('image/jpeg', 0.82);
+    const src = c.toDataURL('image/jpeg', 0.8);
+    c.width = c.height = 0;
+    return src;
 }
+function abrirCamera() { localStorage.setItem('abrindoCamera', String(Date.now())); document.getElementById('cameraInput').click(); }
+document.getElementById('cameraInput').addEventListener('cancel', () => localStorage.removeItem('abrindoCamera'));
 async function handlePhotoUpload(files) {
-    const lista = [...files].filter(f => !f.type || f.type.startsWith('image/')); if (!lista.length) return;
-    if (!textoCoordFoto()) toast('Dica: capture a posição antes das fotos para gravar as coordenadas nelas', 4000);
-    let ok = 0, erro = 0;
-    for (const f of lista) { try { fotos.push({ src: await processarFoto(f), leg: '' }); ok++; } catch (e) { erro++; } }
+    localStorage.removeItem('abrindoCamera');
+    const lista = [...(files || [])]; if (!lista.length) return;
+    if (!textoCoordFoto()) toast('Dica: capture a posição antes das fotos para gravar as coordenadas nelas', 3500);
+    let ok = 0, heic = 0, falha = 0;
+    for (const f of lista) {   // uma por vez, para não estourar a memória
+        try { fotos.push({ src: await processarFoto(f), leg: '' }); ok++; }
+        catch (e) { if (ehHEIC(f)) heic++; else falha++; }
+    }
     renderFotos(); autoSalvar();
-    if (erro) toast(`${ok} foto(s) adicionada(s). ${erro} arquivo(s) em formato não suportado (ex.: HEIC) – envie em JPG.`, 5000);
-    else toast(ok === 1 ? 'Foto adicionada (' + fotos.length + ' no total)' : ok + ' fotos adicionadas');
+    const jaOk = ok ? [`<b>${ok} foto(s) adicionada(s) normalmente.</b>`] : [];
+    if (heic) return aviso('Foto em formato HEIC/HEIF', [...jaOk,
+        'Este navegador não abre fotos HEIC.',
+        'Samsung: app <b>Câmera</b> → ⚙️ → <b>Formatos e opções avançadas</b> → desligue <b>Imagens HEIF</b>.',
+        'Outras marcas: nas configurações da câmera, escolha o formato <b>JPG/JPEG</b>.', 'Depois tire a foto de novo.']);
+    if (falha) return aviso(`Não foi possível processar ${falha} foto(s)`, [...jaOk,
+        'O celular ficou sem memória para abrir a imagem.', 'Feche outros aplicativos abertos e tente de novo.',
+        'Se a câmera estiver em 50, 108 ou 200 MP, troque para <b>12 MP</b> (3:4 padrão).']);
+    toast(ok === 1 ? 'Foto adicionada (' + fotos.length + ' no total)' : ok + ' fotos adicionadas');
+}
+function verificarCameraFechada() {   // o Android fechou o app enquanto a câmera estava aberta
+    const t = +localStorage.getItem('abrindoCamera'); localStorage.removeItem('abrindoCamera');
+    if (t && Date.now() - t < 5 * 60 * 1000) aviso('O celular fechou o app ao abrir a câmera', [
+        'Isso acontece quando falta memória. <b>Sua ficha foi salva</b>; só a última foto se perdeu.',
+        'Feche os outros aplicativos e toque em <b>📷 TIRAR FOTO</b> de novo.',
+        'Se continuar: tire as fotos pelo app <b>Câmera</b> e depois use <b>🖼️ ESCOLHER DA GALERIA</b>.',
+        'Ajuda também baixar a resolução da câmera para <b>12 MP</b>.']);
 }
 function renderFotos() {
     document.getElementById('photoGrid').innerHTML = fotos.map((f, i) => `
@@ -711,14 +817,14 @@ async function gerarPDF() {
     /* FOLHA 1 */
     novaPagina();
     titulo('Ficha de Vistoria – Áreas Urbanas');
-    linha([['Referência cadastral', v('referencia_cadastral'), 1], ['Data', dataBR(v('data_vistoria')), 0, 70]]);
     linha([['Nome do projeto', v('nome_projeto')]]);
+    linha([['Referência cadastral', v('referencia_cadastral'), 1], ['Data', dataBR(v('data_vistoria')), 0, 70]]);
     linha([['Nome do vistoriador', v('nome_vistoriador')]]);
     y -= 4; titulo('Dados do Imóvel');
-    linha([['Endereço do imóvel', v('endereco_imovel'), 1], ['CEP', v('cep_imovel'), 0, 70]]);
-    linha([['Bairro', v('bairro_imovel'), 1], ['Município', v('municipio_imovel'), 1], ['Estado', v('estado_imovel'), 0, 28]]);
+    linha([['CEP', v('cep_imovel'), 0, 62], ['Endereço do imóvel', v('endereco_imovel'), 1]]);
+    linha([['Bairro', v('bairro_imovel'), 1], ['Município', v('municipio_imovel'), 1], ['Estado', v('estado_imovel'), 0, 28], ['País', v('pais_imovel'), 0, 60]]);
     linha([['Coordenadas (lat/long)', v('coordenadas')]]);
-    linha([['Área do terreno', v('area_terreno')], ['Testada', v('testada')], ['Lote', v('lote')], ['Quadra', v('quadra')]]);
+    linha([['Área do terreno', comUn('area_terreno', 'm²'), 1.5], ['Testada', comUn('testada', 'm'), 1.2], ['Lote', v('lote'), 0.8], ['Quadra', v('quadra'), 0.8]]);
     linha([['Topografia', v('topografia')], ['Consistência do solo', v('consistencia_solo')]]);
     linha([['Córrego/Rio/Ribeirão', v('corrego')], ['Faixa de servidão', v('faixa_servidao')]]);
     linha([['Matrícula/Transcrição', v('matricula')], ['Relação de fotos', relacaoFotos()]]);
@@ -739,21 +845,21 @@ async function gerarPDF() {
     linha([['RG', v('rg_proprietario')], ['CPF/CNPJ', v('cpf_proprietario')], ['Nacionalidade', v('nacionalidade_proprietario')]]);
     linha([['Profissão', v('profissao_proprietario'), 1.6], ['Estado civil', v('estado_civil_proprietario')]]);
     linha([['Vínculo com imóvel', v('vinculo_imovel')]]);
-    linha([['Endereço do proprietário', v('endereco_proprietario')]]);
-    linha([['Bairro', v('bairro_proprietario'), 1.3], ['CEP', v('cep_proprietario'), 0, 62], ['Município', v('municipio_proprietario'), 1.3], ['Estado', v('estado_proprietario'), 0, 28]]);
+    linha([['CEP', v('cep_proprietario'), 0, 62], ['Endereço do proprietário', v('endereco_proprietario'), 1]]);
+    linha([['Bairro', v('bairro_proprietario'), 1], ['Município', v('municipio_proprietario'), 1], ['Estado', v('estado_proprietario'), 0, 28], ['País', v('pais_proprietario'), 0, 60]]);
     linha([['Nome do cônjuge', v('nome_conjuge')]]);
     linha([['RG', v('rg_conjuge')], ['CPF', v('cpf_conjuge')], ['Nacionalidade', v('nacionalidade_conjuge')]]);
     linha([['Profissão', v('profissao_conjuge')], ['Telefone', v('telefone_proprietario')]]);
     linha([['E-mail', v('email_proprietario')], ['E-mail', v('email_proprietario_2')]]);
     obsPautada(v('observacoes'));
 
-    const idLinha = () => [v('referencia_cadastral') && 'REF. CADASTRAL: ' + v('referencia_cadastral'), v('nome_projeto') && 'PROJETO: ' + v('nome_projeto'), v('data_vistoria') && 'DATA: ' + dataBR(v('data_vistoria'))].filter(Boolean).join('     ');
+    const idLinha = () => [v('nome_projeto') && 'PROJETO: ' + v('nome_projeto'), v('referencia_cadastral') && 'REF. CADASTRAL: ' + v('referencia_cadastral'), v('data_vistoria') && 'DATA: ' + dataBR(v('data_vistoria'))].filter(Boolean).join('     ');
 
     /* FOLHA 2: BENFEITORIAS (opcional) */
     if (v('benf_ativa')) {
         novaPagina(); titulo('Ficha de Benfeitorias');
-        linha([['Referência cadastral', v('referencia_cadastral'), 1], ['Data', dataBR(v('data_vistoria')), 0, 70]]);
         linha([['Nome do projeto', v('nome_projeto')]]);
+        linha([['Referência cadastral', v('referencia_cadastral'), 1], ['Data', dataBR(v('data_vistoria')), 0, 70]]);
         linha([['Endereço do imóvel', v('endereco_imovel')]]);
         y -= 4;
         const cols = [['Nº', 20], ['DESCRIÇÃO DA BENFEITORIA', 0], ['ÁREA/QTDE', 58], ['PADRÃO', 58], ['CONSERVAÇÃO', 72], ['IDADE', 36], ['ATINGIDA', 52], ['FOTOS', 40]];
@@ -845,23 +951,20 @@ async function exportDOC() {
     await salvarAgora();
     toast('Gerando arquivo do Word…', 4000);
     try { await carregarDocx(); } catch (e) { alert(e.message); return; }
-    try {
-        const blob = await gerarDOCX();
-        baixar(blob, nomeArquivo('docx')); toast('Word gerado: ' + nomeArquivo('docx'));
-    } catch (e) { console.error(e); alert('Erro ao gerar o Word: ' + e.message); }
+    try { const blob = await gerarDOCX(); baixar(blob, nomeArquivo('docx')); toast('Word gerado: ' + nomeArquivo('docx')); }
+    catch (e) { console.error(e); alert('Erro ao gerar o Word: ' + e.message); }
 }
 async function gerarDOCX() {
-    const D = window.docx;
     const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, BorderStyle, AlignmentType,
-            ImageRun, Header, TableLayoutType, VerticalAlign, ShadingType } = D;
-    const TW = 10433;                       // largura útil A4 com margens de 13 mm (twips)
+            ImageRun, Header, TableLayoutType, VerticalAlign, ShadingType } = window.docx;
+    const TW = 10433;
     const AZ = '0B2A6B', S_ROT = 17, S_VAL = 19, S_TIT = 19, S_CHK = 17;
     const NADA = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
     const SEM = { top: NADA, bottom: NADA, left: NADA, right: NADA };
     const fina = { style: BorderStyle.SINGLE, size: 4, color: '000000' };
     const grossa = { style: BorderStyle.SINGLE, size: 12, color: '000000' };
     const ctx = document.createElement('canvas').getContext('2d');
-    const medir = (t, pt, bold) => { ctx.font = `${bold ? 'bold ' : ''}${pt}pt Arial`; return Math.ceil(ctx.measureText(t).width * 15 * 1.06) + 200; };   // + margens internas da célula
+    const medir = (t, pt, bold) => { ctx.font = `${bold ? 'bold ' : ''}${pt}pt Arial`; return Math.ceil(ctx.measureText(t).width * 15 * 1.06) + 200; };
     const run = (t, o = {}) => new TextRun({ text: String(t ?? ''), font: 'Arial', size: o.size || S_VAL, bold: !!o.bold, color: o.color || '000000' });
     const par = (filhos, o = {}) => new Paragraph({ children: [].concat(filhos), alignment: o.al, spacing: { before: o.antes || 0, after: o.depois || 0 } });
     const cel = (filhos, w, o = {}) => new TableCell({ children: [].concat(filhos), width: { size: w, type: WidthType.DXA }, borders: o.b || SEM,
@@ -870,25 +973,23 @@ async function gerarDOCX() {
     const tabela = (linhas, cols, o = {}) => new Table({ rows: linhas, columnWidths: cols, width: { size: TW, type: WidthType.DXA },
         layout: TableLayoutType.FIXED, borders: o.b || { ...SEM, insideHorizontal: NADA, insideVertical: NADA } });
     const espaco = (pts = 4) => par(run(''), { depois: pts * 20 });
-
     const titulo = t => tabela([new TableRow({ children: [cel(par(run(t.toUpperCase(), { bold: true, size: S_TIT }), { al: AlignmentType.CENTER }), TW,
         { b: { top: grossa, bottom: grossa, left: grossa, right: grossa }, va: VerticalAlign.CENTER })] })], [TW]);
-    // cols: [rótulo, valor, peso, larguraFixaDoValor(twips)?]
     function linha(cols) {
         const gap = 160;
         const rotW = cols.map(c => medir(c[0].toUpperCase() + ':', 8.5));
         const fixos = cols.reduce((s, c, i) => s + rotW[i] + (c[3] || 0), 0) + gap * (cols.length - 1);
         const pesos = cols.reduce((s, c) => s + (c[3] ? 0 : (c[2] || 1)), 0);
         const livre = Math.max(600, TW - fixos);
-        const larg = [], cells = [];
+        const lg = [], cells = [];
         cols.forEach((c, i) => {
             const vw = c[3] || Math.floor(livre * (c[2] || 1) / pesos);
-            larg.push(rotW[i], vw); cells.push(cel(par(run(c[0].toUpperCase() + ':', { size: S_ROT })), rotW[i]),
+            lg.push(rotW[i], vw); cells.push(cel(par(run(c[0].toUpperCase() + ':', { size: S_ROT })), rotW[i]),
                 cel(par(run(c[1], { color: AZ }), { al: c[3] ? AlignmentType.CENTER : undefined }), vw, { b: { ...SEM, bottom: fina } }));
-            if (i < cols.length - 1) { larg.push(gap); cells.push(cel(par(run('')), gap)); }
+            if (i < cols.length - 1) { lg.push(gap); cells.push(cel(par(run('')), gap)); }
         });
-        const soma = larg.reduce((a, b) => a + b, 0); larg[larg.length - 1] += TW - soma;
-        return [tabela([new TableRow({ children: cells })], larg), espaco(1)];
+        const soma = lg.reduce((a, b) => a + b, 0); lg[lg.length - 1] += TW - soma;
+        return [tabela([new TableRow({ children: cells })], lg), espaco(1)];
     }
     function caixa(tit, itens) {
         const w = Math.floor(TW / 4), cols = [w, w, w, TW - 3 * w];
@@ -908,13 +1009,14 @@ async function gerarDOCX() {
 
     const corpo = [];
     corpo.push(titulo('Ficha de Vistoria – Áreas Urbanas'), espaco(4));
+    corpo.push(...linha([['Nome do projeto', v('nome_projeto')]]));
     corpo.push(...linha([['Referência cadastral', v('referencia_cadastral'), 1], ['Data', dataBR(v('data_vistoria')), 0, 1500]]));
-    corpo.push(...linha([['Nome do projeto', v('nome_projeto')]]), ...linha([['Nome do vistoriador', v('nome_vistoriador')]]));
+    corpo.push(...linha([['Nome do vistoriador', v('nome_vistoriador')]]));
     corpo.push(titulo('Dados do Imóvel'), espaco(4));
-    corpo.push(...linha([['Endereço do imóvel', v('endereco_imovel'), 1], ['CEP', v('cep_imovel'), 0, 1500]]));
-    corpo.push(...linha([['Bairro', v('bairro_imovel'), 1], ['Município', v('municipio_imovel'), 1], ['Estado', v('estado_imovel'), 0, 600]]));
+    corpo.push(...linha([['CEP', v('cep_imovel'), 0, 1300], ['Endereço do imóvel', v('endereco_imovel'), 1]]));
+    corpo.push(...linha([['Bairro', v('bairro_imovel'), 1], ['Município', v('municipio_imovel'), 1], ['Estado', v('estado_imovel'), 0, 600], ['País', v('pais_imovel'), 0, 1100]]));
     corpo.push(...linha([['Coordenadas (lat/long)', v('coordenadas')]]));
-    corpo.push(...linha([['Área do terreno', v('area_terreno')], ['Testada', v('testada')], ['Lote', v('lote')], ['Quadra', v('quadra')]]));
+    corpo.push(...linha([['Área do terreno', comUn('area_terreno', 'm²')], ['Testada', comUn('testada', 'm')], ['Lote', v('lote')], ['Quadra', v('quadra')]]));
     corpo.push(...linha([['Topografia', v('topografia')], ['Consistência do solo', v('consistencia_solo')]]));
     corpo.push(...linha([['Córrego/Rio/Ribeirão', v('corrego')], ['Faixa de servidão', v('faixa_servidao')]]));
     corpo.push(...linha([['Matrícula/Transcrição', v('matricula')], ['Relação de fotos', relacaoFotos()]]));
@@ -934,8 +1036,9 @@ async function gerarDOCX() {
     corpo.push(...linha([['Nome do proprietário', v('nome_proprietario')]]));
     corpo.push(...linha([['RG', v('rg_proprietario')], ['CPF/CNPJ', v('cpf_proprietario')], ['Nacionalidade', v('nacionalidade_proprietario')]]));
     corpo.push(...linha([['Profissão', v('profissao_proprietario'), 1.6], ['Estado civil', v('estado_civil_proprietario')]]));
-    corpo.push(...linha([['Vínculo com imóvel', v('vinculo_imovel')]]), ...linha([['Endereço do proprietário', v('endereco_proprietario')]]));
-    corpo.push(...linha([['Bairro', v('bairro_proprietario'), 1.3], ['CEP', v('cep_proprietario'), 0, 1300], ['Município', v('municipio_proprietario'), 1.3], ['Estado', v('estado_proprietario'), 0, 600]]));
+    corpo.push(...linha([['Vínculo com imóvel', v('vinculo_imovel')]]));
+    corpo.push(...linha([['CEP', v('cep_proprietario'), 0, 1300], ['Endereço do proprietário', v('endereco_proprietario'), 1]]));
+    corpo.push(...linha([['Bairro', v('bairro_proprietario'), 1], ['Município', v('municipio_proprietario'), 1], ['Estado', v('estado_proprietario'), 0, 600], ['País', v('pais_proprietario'), 0, 1100]]));
     corpo.push(...linha([['Nome do cônjuge', v('nome_conjuge')]]));
     corpo.push(...linha([['RG', v('rg_conjuge')], ['CPF', v('cpf_conjuge')], ['Nacionalidade', v('nacionalidade_conjuge')]]));
     corpo.push(...linha([['Profissão', v('profissao_conjuge')], ['Telefone', v('telefone_proprietario')]]));
@@ -944,8 +1047,9 @@ async function gerarDOCX() {
 
     if (v('benf_ativa')) {
         corpo.push(quebraPag(), titulo('Ficha de Benfeitorias'), espaco(4));
+        corpo.push(...linha([['Nome do projeto', v('nome_projeto')]]));
         corpo.push(...linha([['Referência cadastral', v('referencia_cadastral'), 1], ['Data', dataBR(v('data_vistoria')), 0, 1500]]));
-        corpo.push(...linha([['Nome do projeto', v('nome_projeto')]]), ...linha([['Endereço do imóvel', v('endereco_imovel')]]));
+        corpo.push(...linha([['Endereço do imóvel', v('endereco_imovel')]]));
         const cab = ['Nº', 'DESCRIÇÃO DA BENFEITORIA', 'ÁREA/QTDE', 'PADRÃO', 'CONSERVAÇÃO', 'IDADE', 'ATINGIDA', 'FOTOS'];
         const cw = [450, 0, 1150, 1150, 1450, 750, 1050, 850]; cw[1] = TW - cw.reduce((a, b) => a + b, 0);
         const bT = { top: fina, bottom: fina, left: fina, right: fina };
@@ -959,8 +1063,8 @@ async function gerarDOCX() {
     }
 
     if (fotos.length) {
-        const id = [v('referencia_cadastral') && 'REF. CADASTRAL: ' + v('referencia_cadastral'), v('nome_projeto') && 'PROJETO: ' + v('nome_projeto'), v('data_vistoria') && 'DATA: ' + dataBR(v('data_vistoria'))].filter(Boolean).join('     ');
-        const meia = Math.floor(TW / 2), MAXW = 318, MAXH = 330;   // px (96 dpi) – 4 fotos por página
+        const id = [v('nome_projeto') && 'PROJETO: ' + v('nome_projeto'), v('referencia_cadastral') && 'REF. CADASTRAL: ' + v('referencia_cadastral'), v('data_vistoria') && 'DATA: ' + dataBR(v('data_vistoria'))].filter(Boolean).join('     ');
+        const meia = Math.floor(TW / 2), MAXW = 318, MAXH = 330;
         const bF = { top: fina, bottom: fina, left: fina, right: fina };
         const dims = src => new Promise(res => { const i = new Image(); i.onload = () => res([i.width, i.height]); i.src = src; });
         for (let p = 0; p < fotos.length; p += 4) {
@@ -1006,8 +1110,9 @@ function camposComRotulo() {
         const secao = fs.querySelector('legend')?.textContent.trim() || '';
         fs.querySelectorAll('input[name], select[name], textarea[name]').forEach(el => {
             if (el.name.endsWith('_outro_txt') || el.name === 'benf_ativa') return;
-            let rot = el.closest('.form-group')?.querySelector('label')?.textContent.replace(':','').trim() || el.closest('.checkbox-item')?.textContent.trim() || el.name;
+            let rot = el.dataset.rot || el.closest('.form-group')?.querySelector('label')?.textContent.replace(':','').trim() || el.closest('.checkbox-item')?.textContent.trim() || el.name;
             if (el.name.endsWith('_outro')) rot = 'Outro';
+            if (el.dataset.un) rot += ` (${el.dataset.un})`;
             out.push({ secao, nome: el.name, rot, tipo: el.type });
         });
     });
@@ -1057,6 +1162,7 @@ function baixar(blob, nome) {
     try { const s = localStorage.getItem('ficha_vistoria_urbana'); if (s && !todas.length) { const o = JSON.parse(s); const f = fichaVazia(); f.campos = o.campos || {}; f.fotos = o.fotos || []; await dbPut(f); todas = [f]; localStorage.removeItem('ficha_vistoria_urbana'); } } catch (e) {}
     if (!todas.length) { const f = fichaVazia(); await dbPut(f); todas = [f]; }
     aplicar(todas[0]); listarFichas();
+    verificarCameraFechada();
     if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
 })();
 </script>
