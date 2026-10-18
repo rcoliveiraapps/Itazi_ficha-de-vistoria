@@ -71,7 +71,11 @@
         .btn:disabled { opacity: .6; cursor: wait; }
 
         .photo-section { margin-top: 20px; }
-        .photo-upload-box { border: 2px dashed #a0aec0; padding: 20px; text-align: center; background: #f7fafc; border-radius: 4px; cursor: pointer; margin-bottom: 15px; }
+        .foto-botoes { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+        .btn-foto { flex: 1; min-width: 200px; border: none; border-radius: 6px; padding: 16px 10px; font: bold 12pt Arial, sans-serif; color: #fff; cursor: pointer; }
+        .btn-foto.camera { background: #2f855a; } .btn-foto.galeria { background: #2b6cb0; }
+        .btn-foto:active { transform: scale(.98); }
+        .photo-upload-box { border: 2px dashed #a0aec0; padding: 10px; text-align: center; background: #f7fafc; border-radius: 4px; margin-bottom: 15px; }
         .photo-upload-box.arrastando { background: #ebf8ff; border-color: #2b6cb0; }
         .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
         .photo-card { border: 1px solid #cbd5e0; background: #fff; padding: 10px; border-radius: 4px; text-align: center; }
@@ -254,10 +258,14 @@
 
         <fieldset class="photo-section">
             <legend>Registro Fotográfico</legend>
-            <div class="photo-upload-box" id="dropZone" onclick="document.getElementById('photoInput').click()">
-                <p><strong>Toque aqui para tirar ou adicionar fotos</strong> ou arraste as imagens para cá</p>
-                <p class="dica" style="margin:0">Data/hora e coordenadas são gravadas na própria foto.</p>
-                <input type="file" id="photoInput" accept="image/*" multiple style="display: none;" onchange="handlePhotoUpload(event.target.files); event.target.value='';">
+            <div class="foto-botoes">
+                <button type="button" class="btn-foto camera" onclick="document.getElementById('cameraInput').click()">📷 TIRAR FOTO</button>
+                <button type="button" class="btn-foto galeria" onclick="document.getElementById('photoInput').click()">🖼️ ESCOLHER DA GALERIA</button>
+            </div>
+            <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoUpload(event.target.files); event.target.value='';">
+            <input type="file" id="photoInput" accept="image/*" multiple style="display: none;" onchange="handlePhotoUpload(event.target.files); event.target.value='';">
+            <div class="photo-upload-box" id="dropZone">
+                <p class="dica" style="margin:0">No computador: arraste as imagens para cá. Data/hora e coordenadas são gravadas na própria foto.</p>
             </div>
             <div class="photo-grid" id="photoGrid"></div>
         </fieldset>
@@ -276,7 +284,7 @@
         <h3>Opções de Exportação</h3>
         <button type="button" class="btn btn-pdf" id="bPdf" onclick="exportPDF()">Exportar PDF</button>
         <button type="button" class="btn btn-share" id="bShare" onclick="compartilharPDF()">Compartilhar PDF</button>
-        <button type="button" class="btn btn-doc" onclick="exportDOC()">Exportar .DOC (Word)</button>
+        <button type="button" class="btn btn-doc" onclick="exportDOC()">Exportar Word (.DOCX)</button>
         <button type="button" class="btn btn-excel" onclick="exportEXCEL()">Exportar planilha (.CSV)</button>
         <button type="button" class="btn btn-excel" onclick="exportProjetoCSV()">Planilha do projeto (todas as fichas)</button>
         <br>
@@ -346,10 +354,12 @@ form.addEventListener('input', e => {
         el.title = ok ? '' : 'CPF/CNPJ com dígito verificador inválido. Confira o número.';
     }
     el.classList.remove('faltando');
+    if (el.name === 'coordenadas' && atual) delete atual.gps;   // coordenada editada à mão ou N/A: não usa mais a do GPS
     atualizarNA(el);
     autoSalvar();
 });
-form.addEventListener('change', e => { e.target.classList.remove('faltando'); autoSalvar(); });
+form.addEventListener('change', async e => { e.target.classList.remove('faltando');
+    if (e.target.name === 'nome_projeto' || e.target.name === 'referencia_cadastral' || e.target.name === 'endereco_imovel') { await salvarAgora(); listarFichas(); } else autoSalvar(); });
 ['cad','doc'].forEach(p => form.elements[p + '_outro_txt'].addEventListener('input', e => { form.elements[p + '_outro'].checked = !!e.target.value.trim(); }));
 document.getElementById('mesmoEndereco').addEventListener('change', e => {
     if (!e.target.checked) return;
@@ -409,8 +419,9 @@ function autoSalvar() {
     tSalvar = setTimeout(async () => {
         atual = coletar(); await dbPut(atual);
         document.getElementById('avisoSalvo').textContent = '· salvo às ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-        listarFichas();
-    }, 400);
+        const o = [...document.getElementById('selFicha').options].find(x => x.value === atual.id);
+        if (o) o.textContent = rotuloFicha(atual);
+    }, 600);
 }
 async function salvarAgora() { clearTimeout(tSalvar); atual = coletar(); await dbPut(atual); }
 function rotuloFicha(f) {
@@ -447,7 +458,9 @@ async function duplicarFicha() {
     await dbPut(c); aplicar(c); listarFichas(); toast('Ficha duplicada (sem as fotos)');
 }
 async function excluirFicha() {
+    clearTimeout(tSalvar);   // evita que um salvamento pendente recrie a ficha excluída
     if (!confirm('Excluir esta ficha e suas fotos deste aparelho?')) return;
+    clearTimeout(tSalvar);
     await dbDel(atual.id);
     const resto = (await dbTodas()).sort((a, b) => (b.criada || 0) - (a.criada || 0));
     if (resto.length) aplicar(resto[0]); else { const f = fichaVazia(); await dbPut(f); aplicar(f); }
@@ -504,7 +517,10 @@ function textoCoordFoto() {
 
 /* ===================== FOTOS ===================== */
 function carregarImg(file) {
-    return new Promise(res => { const r = new FileReader(); r.onload = () => { const i = new Image(); i.onload = () => res(i); i.src = r.result; }; r.readAsDataURL(file); });
+    return new Promise((res, rej) => { const r = new FileReader();
+        r.onerror = () => rej(new Error('leitura'));
+        r.onload = () => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('formato')); i.src = r.result; };
+        r.readAsDataURL(file); });
 }
 async function processarFoto(file) {
     const img = await carregarImg(file);
@@ -523,10 +539,13 @@ async function processarFoto(file) {
     return c.toDataURL('image/jpeg', 0.82);
 }
 async function handlePhotoUpload(files) {
-    const lista = [...files].filter(f => f.type.startsWith('image/')); if (!lista.length) return;
+    const lista = [...files].filter(f => !f.type || f.type.startsWith('image/')); if (!lista.length) return;
     if (!textoCoordFoto()) toast('Dica: capture a posição antes das fotos para gravar as coordenadas nelas', 4000);
-    for (const f of lista) fotos.push({ src: await processarFoto(f), leg: '' });
+    let ok = 0, erro = 0;
+    for (const f of lista) { try { fotos.push({ src: await processarFoto(f), leg: '' }); ok++; } catch (e) { erro++; } }
     renderFotos(); autoSalvar();
+    if (erro) toast(`${ok} foto(s) adicionada(s). ${erro} arquivo(s) em formato não suportado (ex.: HEIC) – envie em JPG.`, 5000);
+    else toast(ok === 1 ? 'Foto adicionada (' + fotos.length + ' no total)' : ok + ' fotos adicionadas');
 }
 function renderFotos() {
     document.getElementById('photoGrid').innerHTML = fotos.map((f, i) => `
@@ -621,7 +640,7 @@ async function gerarPDF() {
     const cache = {};
     const limpa = (s, font) => [...String(s ?? '')].map(ch => {
         const k = (font === FB ? 'b' : 'r') + ch; if (k in cache) return cache[k];
-        let out = ch; try { font.widthOfTextAtSize(ch, 10); } catch (e) { out = ch.normalize('NFD').replace(/[\u0300-\u036f]/g, '') || '?'; try { font.widthOfTextAtSize(out, 10); } catch (e2) { out = '?'; } }
+        let out = ch; try { font.widthOfTextAtSize(ch, 10); } catch (e) { out = ch.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); try { if (out) font.widthOfTextAtSize(out, 10); } catch (e2) { out = ''; } }   // emojis e símbolos sem equivalente são omitidos
         return cache[k] = out;
     }).join('').replace(/\r/g, '');
     const larg = (s, f, t) => f.widthOfTextAtSize(limpa(s, f), t);
@@ -679,8 +698,14 @@ async function gerarPDF() {
         const xo = ML + larg('OBS:', F, T_ROT) + 4;
         const ls = quebra(texto, F, T_VAL, ML + CW - xo - 4); const n = Math.max(3, ls.length);
         txt('OBS:', ML, y - 11, T_ROT);
-        for (let i = 0; i < n; i++) { const b = y - 11 - i * 15; page.drawLine({ start: { x: xo, y: b - 2 }, end: { x: ML + CW, y: b - 2 }, thickness: 0.6, color: PRETO }); if (ls[i]) txt(ls[i], xo + 3, b + 0.5, T_VAL, F, AZUL); }
-        y -= n * 15 + 6;
+        for (let i = 0; i < n; i++) {
+            if (y - 15 < MB) { novaPagina(); titulo('Observações (continuação)'); }   // texto longo continua na página seguinte
+            const b = y - 11;
+            page.drawLine({ start: { x: xo, y: b - 2 }, end: { x: ML + CW, y: b - 2 }, thickness: 0.6, color: PRETO });
+            if (ls[i]) txt(ls[i], xo + 3, b + 0.5, T_VAL, F, AZUL);
+            y -= 15;
+        }
+        y -= 6;
     }
 
     /* FOLHA 1 */
@@ -784,70 +809,197 @@ async function exportPDF() { const f = await pdfComoArquivo(); if (f) { baixar(f
 async function compartilharPDF() {
     const f = await pdfComoArquivo(); if (!f) return;
     if (navigator.canShare && navigator.canShare({ files: [f] })) {
-        try { await navigator.share({ files: [f], title: f.name, text: 'Ficha de vistoria ' + (v('referencia_cadastral') || '') }); }
-        catch (e) { if (e.name !== 'AbortError') { baixar(f, f.name); toast('Compartilhamento indisponível – PDF baixado'); } }
+        try { await navigator.share({ files: [f], title: f.name }); }
+        catch (e) {
+            if (e.name === 'NotAllowedError') painelCompartilhar(f);   // o PDF demorou e o celular exige um novo toque
+            else if (e.name !== 'AbortError') { baixar(f, f.name); toast('Compartilhamento indisponível – PDF baixado'); }
+        }
     } else { baixar(f, f.name); toast('Este aparelho não permite compartilhar arquivos – PDF baixado'); }
 }
+function painelCompartilhar(f) {
+    const m = document.createElement('div');
+    m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:60;padding:14px';
+    m.innerHTML = `<div style="background:#fff;border-radius:10px;padding:20px;max-width:360px;width:100%;text-align:center;font-family:Arial">
+        <p style="margin:0 0 14px;font-weight:bold">PDF pronto: ${esc(f.name)}</p>
+        <button type="button" class="btn btn-share" style="width:100%" id="pcShare">Compartilhar agora</button>
+        <button type="button" class="btn btn-sec" style="width:100%" id="pcBaixar">Baixar PDF</button>
+        <button type="button" class="btn-mini" style="margin-top:6px" id="pcFechar">Fechar</button></div>`;
+    document.body.appendChild(m);
+    m.querySelector('#pcShare').onclick = async () => { try { await navigator.share({ files: [f], title: f.name }); } catch (e) {} m.remove(); };
+    m.querySelector('#pcBaixar').onclick = () => { baixar(f, f.name); m.remove(); };
+    m.querySelector('#pcFechar').onclick = () => m.remove();
+}
 
-/* ===================== WORD (.doc) ===================== */
-function exportDOC() {
+/* ===================== WORD (.docx real, gerado no aparelho) ===================== */
+function carregarDocx() {
+    if (window.docx) return Promise.resolve();
+    return new Promise((res, rej) => {
+        const sc = document.createElement('script'); sc.src = 'docx.js';
+        sc.onload = () => res();
+        sc.onerror = () => rej(new Error('Não foi possível carregar o gerador de Word (docx.js). Abra o app uma vez com internet.'));
+        document.head.appendChild(sc);
+    });
+}
+async function exportDOC() {
     if (!conferir()) return;
-    const tl = t => `<table width="100%" cellspacing="0" cellpadding="3" style="border:1.5pt solid #000;margin:8pt 0 4pt"><tr><td align="center" style="font-weight:bold;font-size:9.5pt">${t}</td></tr></table>`;
-    const ln = (...cols) => `<table width="100%" cellspacing="0" cellpadding="2" style="margin:0 0 3pt"><tr>${cols.map(([r,val,w]) =>
-        `<td style="white-space:nowrap;font-size:8.5pt;width:1%">${r.toUpperCase()}:</td><td style="border-bottom:1px solid #000;font-size:9.5pt;color:#0b2a6b" ${w?`width="${w}"`:''}>${esc(val)}&nbsp;</td>`).join('<td width="8"></td>')}</tr></table>`;
-    const bx = on => on ? '&#9746;' : '&#9744;';
-    const chk = itens => `<table width="100%" cellspacing="0" cellpadding="3" style="border:1.5pt solid #000;border-top:none;font-size:8.5pt">${[0,1,2].map(r =>
-        `<tr>${[0,1,2,3].map(c => { const it = itens[c*3+r]; return `<td>${bx(it[0])} ${it[1]}</td>`; }).join('')}</tr>`).join('')}</table>`;
-    const tlBox = t => `<table width="100%" cellspacing="0" cellpadding="3" style="border:1.5pt solid #000;margin:8pt 0 0"><tr><td align="center" style="font-weight:bold;font-size:9.5pt">${t}</td></tr></table>`;
-    const cad = [[v('cad_agua'),'Fornecimento de Água'],[v('cad_luz'),'Luz Domiciliar'],[v('cad_iluminacao'),'Iluminação Pública'],[v('cad_telefone'),'Telefone'],[v('cad_pavimentacao'),'Pavimentação'],[v('cad_guias'),'Guias'],
-        [v('cad_sarjetas'),'Sarjetas'],[v('cad_esgoto'),'Esgoto'],[v('cad_onibus'),'Ônibus Próximo'],[v('cad_trem'),'Trem'],[v('cad_metro'),'Metrô'],[v('cad_outro'),esc(v('cad_outro_txt')) || '________']];
-    const doc = [[v('doc_registro'),'Registro do imóvel'],[v('doc_compra_venda'),'Doc. de compra e venda'],[v('doc_escritura'),'Planta da Escritura'],[v('doc_fotografica') || fotos.length > 0,'Doc. Fotográfica'],[v('doc_estimativa'),'Estimativa de valor'],[v('doc_levantamento'),'Planta de Levantamento'],
-        [v('doc_planta_remanescente'),'Planta do remanescente'],[v('doc_memorial_desc'),'Memorial descritivo'],[v('doc_memorial_remanesc'),'Memorial do remanesc.'],[v('doc_incra'),'INCRA'],[v('doc_iptu'),'IPTU'],[v('doc_outro'),esc(v('doc_outro_txt')) || '________']];
-    let corpo = (logo ? `<img src="${logo}" height="42"><br>` : '') + tl('FICHA DE VISTORIA – ÁREAS URBANAS')
-        + ln(['Referência cadastral', v('referencia_cadastral'), '60%'], ['Data', dataBR(v('data_vistoria'))])
-        + ln(['Nome do projeto', v('nome_projeto')]) + ln(['Nome do vistoriador', v('nome_vistoriador')])
-        + tl('DADOS DO IMÓVEL')
-        + ln(['Endereço do imóvel', v('endereco_imovel'), '60%'], ['CEP', v('cep_imovel')])
-        + ln(['Bairro', v('bairro_imovel')], ['Município', v('municipio_imovel')], ['Estado', v('estado_imovel'), '40'])
-        + ln(['Coordenadas (lat/long)', v('coordenadas')])
-        + ln(['Área do terreno', v('area_terreno')], ['Testada', v('testada')], ['Lote', v('lote')], ['Quadra', v('quadra')])
-        + ln(['Topografia', v('topografia')], ['Consistência do solo', v('consistencia_solo')])
-        + ln(['Córrego/Rio/Ribeirão', v('corrego')], ['Faixa de servidão', v('faixa_servidao')])
-        + ln(['Matrícula/Transcrição', v('matricula')], ['Relação de fotos', relacaoFotos()])
-        + ln(['Utilização do imóvel', v('utilizacao_imovel')])
-        + `<p style="font-weight:bold;font-size:8.5pt;margin:3pt 0">FAVOR DESCREVER AS BENFEITORIAS ATINGIDAS NA SEGUNDA FOLHA (FICHA DE BENFEITORIAS)</p>`
-        + tlBox('DADOS CADASTRAIS DO LOCAL') + chk(cad) + tlBox('DOCUMENTOS ANEXOS') + chk(doc)
-        + tl('DADOS DO PROPRIETÁRIO')
-        + ln(['Nome do proprietário', v('nome_proprietario')])
-        + ln(['RG', v('rg_proprietario')], ['CPF/CNPJ', v('cpf_proprietario')], ['Nacionalidade', v('nacionalidade_proprietario')])
-        + ln(['Profissão', v('profissao_proprietario')], ['Estado civil', v('estado_civil_proprietario')])
-        + ln(['Vínculo com imóvel', v('vinculo_imovel')]) + ln(['Endereço do proprietário', v('endereco_proprietario')])
-        + ln(['Bairro', v('bairro_proprietario')], ['CEP', v('cep_proprietario')], ['Município', v('municipio_proprietario')], ['Estado', v('estado_proprietario'), '40'])
-        + ln(['Nome do cônjuge', v('nome_conjuge')])
-        + ln(['RG', v('rg_conjuge')], ['CPF', v('cpf_conjuge')], ['Nacionalidade', v('nacionalidade_conjuge')])
-        + ln(['Profissão', v('profissao_conjuge')], ['Telefone', v('telefone_proprietario')])
-        + ln(['E-mail', v('email_proprietario')], ['E-mail', v('email_proprietario_2')])
-        + `<p style="font-size:9.5pt;margin:4pt 0"><span style="font-size:8.5pt">OBS:</span> <span style="color:#0b2a6b">${esc(v('observacoes')).replace(/\n/g,'<br>')}</span></p>`;
+    await salvarAgora();
+    toast('Gerando arquivo do Word…', 4000);
+    try { await carregarDocx(); } catch (e) { alert(e.message); return; }
+    try {
+        const blob = await gerarDOCX();
+        baixar(blob, nomeArquivo('docx')); toast('Word gerado: ' + nomeArquivo('docx'));
+    } catch (e) { console.error(e); alert('Erro ao gerar o Word: ' + e.message); }
+}
+async function gerarDOCX() {
+    const D = window.docx;
+    const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, BorderStyle, AlignmentType,
+            ImageRun, Header, TableLayoutType, VerticalAlign, ShadingType } = D;
+    const TW = 10433;                       // largura útil A4 com margens de 13 mm (twips)
+    const AZ = '0B2A6B', S_ROT = 17, S_VAL = 19, S_TIT = 19, S_CHK = 17;
+    const NADA = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
+    const SEM = { top: NADA, bottom: NADA, left: NADA, right: NADA };
+    const fina = { style: BorderStyle.SINGLE, size: 4, color: '000000' };
+    const grossa = { style: BorderStyle.SINGLE, size: 12, color: '000000' };
+    const ctx = document.createElement('canvas').getContext('2d');
+    const medir = (t, pt, bold) => { ctx.font = `${bold ? 'bold ' : ''}${pt}pt Arial`; return Math.ceil(ctx.measureText(t).width * 15 * 1.06) + 200; };   // + margens internas da célula
+    const run = (t, o = {}) => new TextRun({ text: String(t ?? ''), font: 'Arial', size: o.size || S_VAL, bold: !!o.bold, color: o.color || '000000' });
+    const par = (filhos, o = {}) => new Paragraph({ children: [].concat(filhos), alignment: o.al, spacing: { before: o.antes || 0, after: o.depois || 0 } });
+    const cel = (filhos, w, o = {}) => new TableCell({ children: [].concat(filhos), width: { size: w, type: WidthType.DXA }, borders: o.b || SEM,
+        verticalAlign: o.va || VerticalAlign.BOTTOM, columnSpan: o.span, shading: o.sh ? { type: ShadingType.CLEAR, fill: o.sh, color: 'auto' } : undefined,
+        margins: { top: 20, bottom: 20, left: 40, right: 40 } });
+    const tabela = (linhas, cols, o = {}) => new Table({ rows: linhas, columnWidths: cols, width: { size: TW, type: WidthType.DXA },
+        layout: TableLayoutType.FIXED, borders: o.b || { ...SEM, insideHorizontal: NADA, insideVertical: NADA } });
+    const espaco = (pts = 4) => par(run(''), { depois: pts * 20 });
+
+    const titulo = t => tabela([new TableRow({ children: [cel(par(run(t.toUpperCase(), { bold: true, size: S_TIT }), { al: AlignmentType.CENTER }), TW,
+        { b: { top: grossa, bottom: grossa, left: grossa, right: grossa }, va: VerticalAlign.CENTER })] })], [TW]);
+    // cols: [rótulo, valor, peso, larguraFixaDoValor(twips)?]
+    function linha(cols) {
+        const gap = 160;
+        const rotW = cols.map(c => medir(c[0].toUpperCase() + ':', 8.5));
+        const fixos = cols.reduce((s, c, i) => s + rotW[i] + (c[3] || 0), 0) + gap * (cols.length - 1);
+        const pesos = cols.reduce((s, c) => s + (c[3] ? 0 : (c[2] || 1)), 0);
+        const livre = Math.max(600, TW - fixos);
+        const larg = [], cells = [];
+        cols.forEach((c, i) => {
+            const vw = c[3] || Math.floor(livre * (c[2] || 1) / pesos);
+            larg.push(rotW[i], vw); cells.push(cel(par(run(c[0].toUpperCase() + ':', { size: S_ROT })), rotW[i]),
+                cel(par(run(c[1], { color: AZ }), { al: c[3] ? AlignmentType.CENTER : undefined }), vw, { b: { ...SEM, bottom: fina } }));
+            if (i < cols.length - 1) { larg.push(gap); cells.push(cel(par(run('')), gap)); }
+        });
+        const soma = larg.reduce((a, b) => a + b, 0); larg[larg.length - 1] += TW - soma;
+        return [tabela([new TableRow({ children: cells })], larg), espaco(1)];
+    }
+    function caixa(tit, itens) {
+        const w = Math.floor(TW / 4), cols = [w, w, w, TW - 3 * w];
+        const linhas = [new TableRow({ children: [cel(par(run(tit, { bold: true, size: S_TIT }), { al: AlignmentType.CENTER }), TW, { span: 4, b: { top: grossa, bottom: grossa, left: grossa, right: grossa }, va: VerticalAlign.CENTER })] })];
+        for (let r = 0; r < 3; r++) linhas.push(new TableRow({ children: [0, 1, 2, 3].map(c => { const it = itens[c * 3 + r];
+            const bd = { top: NADA, bottom: r === 2 ? grossa : NADA, left: c === 0 ? grossa : NADA, right: c === 3 ? grossa : NADA };
+            return cel(par([new TextRun({ text: it[0] ? '☒ ' : '☐ ', font: 'Segoe UI Symbol', size: S_CHK + 2, color: it[0] ? AZ : '000000' }),
+                run(it[2] ? (it[1] || '________________') : it[1], { size: S_CHK, color: it[2] && it[1] ? AZ : '000000' })]), cols[c], { va: VerticalAlign.CENTER, b: bd }); }) }));
+        return [tabela(linhas, cols, { b: { top: grossa, bottom: grossa, left: grossa, right: grossa, insideHorizontal: NADA, insideVertical: NADA } }), espaco(6)];
+    }
+    function obs(texto) {
+        const rw = medir('OBS:', 8.5), vw = TW - rw;
+        const ls = (texto || '').split('\n'); while (ls.length < 3) ls.push('');
+        return [tabela(ls.map((l, i) => new TableRow({ children: [cel(par(run(i ? '' : 'OBS:', { size: S_ROT })), rw, { va: VerticalAlign.TOP }), cel(par(run(l, { color: AZ })), vw, { b: { ...SEM, bottom: fina } })] })), [rw, vw])];
+    }
+    const quebraPag = () => new Paragraph({ children: [], pageBreakBefore: true });
+
+    const corpo = [];
+    corpo.push(titulo('Ficha de Vistoria – Áreas Urbanas'), espaco(4));
+    corpo.push(...linha([['Referência cadastral', v('referencia_cadastral'), 1], ['Data', dataBR(v('data_vistoria')), 0, 1500]]));
+    corpo.push(...linha([['Nome do projeto', v('nome_projeto')]]), ...linha([['Nome do vistoriador', v('nome_vistoriador')]]));
+    corpo.push(titulo('Dados do Imóvel'), espaco(4));
+    corpo.push(...linha([['Endereço do imóvel', v('endereco_imovel'), 1], ['CEP', v('cep_imovel'), 0, 1500]]));
+    corpo.push(...linha([['Bairro', v('bairro_imovel'), 1], ['Município', v('municipio_imovel'), 1], ['Estado', v('estado_imovel'), 0, 600]]));
+    corpo.push(...linha([['Coordenadas (lat/long)', v('coordenadas')]]));
+    corpo.push(...linha([['Área do terreno', v('area_terreno')], ['Testada', v('testada')], ['Lote', v('lote')], ['Quadra', v('quadra')]]));
+    corpo.push(...linha([['Topografia', v('topografia')], ['Consistência do solo', v('consistencia_solo')]]));
+    corpo.push(...linha([['Córrego/Rio/Ribeirão', v('corrego')], ['Faixa de servidão', v('faixa_servidao')]]));
+    corpo.push(...linha([['Matrícula/Transcrição', v('matricula')], ['Relação de fotos', relacaoFotos()]]));
+    corpo.push(...linha([['Utilização do imóvel', v('utilizacao_imovel')]]));
+    corpo.push(par(run('FAVOR DESCREVER AS BENFEITORIAS ATINGIDAS NA SEGUNDA FOLHA (FICHA DE BENFEITORIAS)', { bold: true, size: S_ROT }), { depois: 120 }));
+    corpo.push(...caixa('DADOS CADASTRAIS DO LOCAL', [
+        [v('cad_agua'),'Fornecimento de Água'],[v('cad_luz'),'Luz Domiciliar'],[v('cad_iluminacao'),'Iluminação Pública'],
+        [v('cad_telefone'),'Telefone'],[v('cad_pavimentacao'),'Pavimentação'],[v('cad_guias'),'Guias'],
+        [v('cad_sarjetas'),'Sarjetas'],[v('cad_esgoto'),'Esgoto'],[v('cad_onibus'),'Ônibus Próximo'],
+        [v('cad_trem'),'Trem'],[v('cad_metro'),'Metrô'],[v('cad_outro'), v('cad_outro_txt'), true]]));
+    corpo.push(...caixa('DOCUMENTOS ANEXOS', [
+        [v('doc_registro'),'Registro do imóvel'],[v('doc_compra_venda'),'Doc. de compra e venda'],[v('doc_escritura'),'Planta da Escritura'],
+        [v('doc_fotografica') || fotos.length > 0,'Doc. Fotográfica'],[v('doc_estimativa'),'Estimativa de valor'],[v('doc_levantamento'),'Planta de Levantamento'],
+        [v('doc_planta_remanescente'),'Planta do remanescente'],[v('doc_memorial_desc'),'Memorial descritivo'],[v('doc_memorial_remanesc'),'Memorial do remanesc.'],
+        [v('doc_incra'),'INCRA'],[v('doc_iptu'),'IPTU'],[v('doc_outro'), v('doc_outro_txt'), true]]));
+    corpo.push(titulo('Dados do Proprietário'), espaco(4));
+    corpo.push(...linha([['Nome do proprietário', v('nome_proprietario')]]));
+    corpo.push(...linha([['RG', v('rg_proprietario')], ['CPF/CNPJ', v('cpf_proprietario')], ['Nacionalidade', v('nacionalidade_proprietario')]]));
+    corpo.push(...linha([['Profissão', v('profissao_proprietario'), 1.6], ['Estado civil', v('estado_civil_proprietario')]]));
+    corpo.push(...linha([['Vínculo com imóvel', v('vinculo_imovel')]]), ...linha([['Endereço do proprietário', v('endereco_proprietario')]]));
+    corpo.push(...linha([['Bairro', v('bairro_proprietario'), 1.3], ['CEP', v('cep_proprietario'), 0, 1300], ['Município', v('municipio_proprietario'), 1.3], ['Estado', v('estado_proprietario'), 0, 600]]));
+    corpo.push(...linha([['Nome do cônjuge', v('nome_conjuge')]]));
+    corpo.push(...linha([['RG', v('rg_conjuge')], ['CPF', v('cpf_conjuge')], ['Nacionalidade', v('nacionalidade_conjuge')]]));
+    corpo.push(...linha([['Profissão', v('profissao_conjuge')], ['Telefone', v('telefone_proprietario')]]));
+    corpo.push(...linha([['E-mail', v('email_proprietario')], ['E-mail', v('email_proprietario_2')]]));
+    corpo.push(...obs(v('observacoes')));
+
     if (v('benf_ativa')) {
-        corpo += `<br style="page-break-before:always">` + tl('FICHA DE BENFEITORIAS')
-            + ln(['Referência cadastral', v('referencia_cadastral'), '60%'], ['Data', dataBR(v('data_vistoria'))]) + ln(['Endereço do imóvel', v('endereco_imovel')])
-            + `<table width="100%" cellspacing="0" cellpadding="3" border="1" style="border-collapse:collapse;font-size:8.5pt"><tr style="background:#eaeef5;font-weight:bold"><td>Nº</td><td>DESCRIÇÃO</td><td>ÁREA/QTDE</td><td>PADRÃO</td><td>CONSERVAÇÃO</td><td>IDADE</td><td>ATINGIDA</td><td>FOTOS</td></tr>`
-            + benf.map((b, i) => `<tr style="color:#0b2a6b"><td>${String(i+1).padStart(2,'0')}</td><td>${esc([b.desc, b.obs && '(' + b.obs + ')'].filter(Boolean).join(' '))}</td><td>${esc(b.qtd ? b.qtd + ' ' + b.un : '')}</td><td>${esc(b.padrao)}</td><td>${esc(b.conserv)}</td><td>${esc(b.idade ? b.idade + ' anos' : '')}</td><td>${esc(b.ating)}</td><td>${esc(b.fotosRef)}</td></tr>`).join('')
-            + `</table><p style="font-size:9.5pt"><span style="font-size:8.5pt">OBS:</span> <span style="color:#0b2a6b">${esc(atual?.benfObs || '').replace(/\n/g,'<br>')}</span></p>`;
+        corpo.push(quebraPag(), titulo('Ficha de Benfeitorias'), espaco(4));
+        corpo.push(...linha([['Referência cadastral', v('referencia_cadastral'), 1], ['Data', dataBR(v('data_vistoria')), 0, 1500]]));
+        corpo.push(...linha([['Nome do projeto', v('nome_projeto')]]), ...linha([['Endereço do imóvel', v('endereco_imovel')]]));
+        const cab = ['Nº', 'DESCRIÇÃO DA BENFEITORIA', 'ÁREA/QTDE', 'PADRÃO', 'CONSERVAÇÃO', 'IDADE', 'ATINGIDA', 'FOTOS'];
+        const cw = [450, 0, 1150, 1150, 1450, 750, 1050, 850]; cw[1] = TW - cw.reduce((a, b) => a + b, 0);
+        const bT = { top: fina, bottom: fina, left: fina, right: fina };
+        const linhasB = [new TableRow({ tableHeader: true, children: cab.map((t, i) => cel(par(run(t, { bold: true, size: 15 }), { al: AlignmentType.CENTER }), cw[i], { b: bT, sh: 'EAEEF5', va: VerticalAlign.CENTER })) })];
+        (benf.length ? benf : [benfVazia()]).forEach((b, i) => {
+            const vals = [String(i + 1).padStart(2, '0'), [b.desc, b.obs && '(' + b.obs + ')'].filter(Boolean).join(' '), b.qtd ? `${b.qtd} ${b.un}` : '', b.padrao, b.conserv, b.idade ? b.idade + ' anos' : '', b.ating, b.fotosRef];
+            linhasB.push(new TableRow({ children: vals.map((t, k) => cel(par(run(t, { size: S_CHK, color: AZ }), { al: k === 1 ? undefined : AlignmentType.CENTER }), cw[k], { b: bT, va: VerticalAlign.CENTER })) }));
+        });
+        corpo.push(tabela(linhasB, cw, { b: { top: fina, bottom: fina, left: fina, right: fina, insideHorizontal: fina, insideVertical: fina } }), espaco(8));
+        corpo.push(...obs(atual?.benfObs || ''));
     }
+
     if (fotos.length) {
-        corpo += `<br style="page-break-before:always">` + tl('RELAÇÃO DE FOTOS')
-            + `<table width="100%" cellspacing="6">${fotos.map((f, i) => (i % 2 === 0 ? '<tr>' : '')
-                + `<td width="50%" valign="top" style="border:1px solid #000"><img src="${f.src}" width="300"><br><span style="font-size:8.5pt"><b>FOTO ${String(i+1).padStart(2,'0')}</b>${f.leg ? ' – ' + esc(f.leg) : ''}</span></td>`
-                + (i % 2 === 1 || i === fotos.length - 1 ? '</tr>' : '')).join('')}</table>`;
+        const id = [v('referencia_cadastral') && 'REF. CADASTRAL: ' + v('referencia_cadastral'), v('nome_projeto') && 'PROJETO: ' + v('nome_projeto'), v('data_vistoria') && 'DATA: ' + dataBR(v('data_vistoria'))].filter(Boolean).join('     ');
+        const meia = Math.floor(TW / 2), MAXW = 318, MAXH = 330;   // px (96 dpi) – 4 fotos por página
+        const bF = { top: fina, bottom: fina, left: fina, right: fina };
+        const dims = src => new Promise(res => { const i = new Image(); i.onload = () => res([i.width, i.height]); i.src = src; });
+        for (let p = 0; p < fotos.length; p += 4) {
+            corpo.push(quebraPag(), titulo(p ? 'Relação de Fotos (continuação)' : 'Relação de Fotos'));
+            if (id) corpo.push(par(run(id, { size: S_ROT }), { antes: 60, depois: 60 }));
+            const linhasF = [];
+            for (let r = 0; r < 2 && p + r * 2 < fotos.length; r++) {
+                const cells = [];
+                for (let c = 0; c < 2; c++) {
+                    const k = p + r * 2 + c;
+                    if (k >= fotos.length) { cells.push(cel(par(run('')), c ? TW - meia : meia)); continue; }
+                    const f = fotos[k], [w, h] = await dims(f.src), e = Math.min(MAXW / w, MAXH / h);
+                    cells.push(cel([
+                        par(new ImageRun({ type: 'jpg', data: b64bytes(f.src), transformation: { width: Math.round(w * e), height: Math.round(h * e) } }), { al: AlignmentType.CENTER, antes: 40 }),
+                        par([run('FOTO ' + String(k + 1).padStart(2, '0'), { bold: true, size: S_ROT }), run(f.leg ? ' – ' + f.leg : '', { size: S_ROT, color: AZ })], { antes: 40, depois: 40 })
+                    ], c ? TW - meia : meia, { b: bF, va: VerticalAlign.TOP }));
+                }
+                linhasF.push(new TableRow({ cantSplit: true, children: cells }));
+            }
+            corpo.push(tabela(linhasF, [meia, TW - meia], { b: { ...SEM, insideHorizontal: NADA, insideVertical: NADA } }));
+        }
     }
-    const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8">
-        <style>@page{size:21cm 29.7cm;margin:1.2cm 1.3cm} body,td,p{font-family:Arial;font-size:9.5pt}</style></head><body>${corpo}</body></html>`;
-    baixar(new Blob(['\ufeff' + html], { type: 'application/msword' }), nomeArquivo('doc'));
+
+    let cabecalho;
+    if (logo) {
+        const [lw, lh] = await new Promise(res => { const i = new Image(); i.onload = () => res([i.width, i.height]); i.src = logo; });
+        cabecalho = new Header({ children: [par(new ImageRun({ type: logo.startsWith('data:image/png') ? 'png' : 'jpg', data: b64bytes(logo), transformation: { width: Math.round(42 * lw / lh), height: 42 } }))] });
+    }
+    const doc = new Document({
+        creator: 'Itazi Engenharia – Ficha de Vistoria', title: 'Ficha de Vistoria – Áreas Urbanas',
+        styles: { default: { document: { run: { font: 'Arial', size: S_VAL } } } },
+        sections: [{ properties: { page: { size: { width: 11906, height: 16838 }, margin: { top: 1300, bottom: 680, left: 737, right: 737, header: 400 } } },
+                     headers: cabecalho ? { default: cabecalho } : undefined, children: corpo }]
+    });
+    return await Packer.toBlob(doc);
 }
 
 /* ===================== PLANILHAS (.CSV ";") ===================== */
-const csvCel = c => `"${String(c ?? '').replace(/"/g, '""')}"`;
+const csvCel = c => { let t = String(c ?? ''); if (/^[=+@]/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; };   // evita que o Excel trate texto como fórmula
 function camposComRotulo() {
     const out = [];
     form.querySelectorAll('fieldset').forEach(fs => {
@@ -897,7 +1049,9 @@ function baixar(blob, nome) {
 /* ===================== INÍCIO ===================== */
 (async () => {
     montarBotoesNA();
+    if (!window.indexedDB) { alert('Este navegador não permite salvar fichas (modo anônimo?). Abra no Chrome ou Safari normal.'); return; }
     await abrirDB();
+    try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) {}   // pede ao navegador para não apagar as fichas
     await carregarLogo();
     let todas = (await dbTodas()).sort((a, b) => (b.alterada || b.criada || 0) - (a.alterada || a.criada || 0));
     try { const s = localStorage.getItem('ficha_vistoria_urbana'); if (s && !todas.length) { const o = JSON.parse(s); const f = fichaVazia(); f.campos = o.campos || {}; f.fotos = o.fotos || []; await dbPut(f); todas = [f]; localStorage.removeItem('ficha_vistoria_urbana'); } } catch (e) {}

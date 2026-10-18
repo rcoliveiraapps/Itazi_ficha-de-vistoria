@@ -1,6 +1,5 @@
-/* Itazi Engenharia – logotipo fixo + botão "Instalar no celular" */
+/* Itazi Engenharia – faixa "Instalar no celular" */
 (function () {
-  /* ---------- Faixa de instalação ---------- */
   var css = document.createElement('style');
   css.textContent =
     '#faixaInstalar{display:none;max-width:900px;margin:0 auto 12px;background:#2f855a;color:#fff;border:none;border-radius:8px;' +
@@ -8,13 +7,14 @@
     '#faixaInstalar small{display:block;font:normal 10pt Arial,sans-serif;opacity:.92;margin-top:4px}' +
     '#faixaInstalar:active{transform:scale(.98)}' +
     '#ajudaInstalar{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:99;padding:14px}' +
-    '#ajudaInstalar div{background:#fff;border-radius:10px;max-width:420px;padding:20px;font:11pt Arial,sans-serif;line-height:1.5}' +
+    '#ajudaInstalar>div{background:#fff;border-radius:10px;max-width:420px;padding:20px;font:11pt Arial,sans-serif;line-height:1.5}' +
     '#ajudaInstalar h3{margin:0 0 10px;color:#1a365d}#ajudaInstalar ol{padding-left:20px;margin:0 0 14px}' +
     '#ajudaInstalar button{background:#1a365d;color:#fff;border:none;border-radius:5px;padding:10px 18px;font:bold 11pt Arial;width:100%}';
   document.head.appendChild(css);
 
   var ua = navigator.userAgent;
   var ehIOS = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var ehMovel = ehIOS || /Android|Mobile/i.test(ua);
   var navInterno = /FBAN|FBAV|Instagram|WhatsApp|Teams|; wv\)/i.test(ua);
   var instalado = function () { return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; };
   var pedido = null;
@@ -29,17 +29,17 @@
   ajuda.innerHTML = '<div><h3 id="ajTit"></h3><ol id="ajPassos"></ol><button type="button">Entendi</button></div>';
   document.body.appendChild(ajuda);
   ajuda.querySelector('button').onclick = function () { ajuda.style.display = 'none'; };
+  ajuda.onclick = function (e) { if (e.target === ajuda) ajuda.style.display = 'none'; };
   function mostrar(tit, passos) {
     document.getElementById('ajTit').textContent = tit;
     document.getElementById('ajPassos').innerHTML = passos.map(function (p) { return '<li>' + p + '</li>'; }).join('');
     ajuda.style.display = 'flex';
   }
 
-  function atualizar() { faixa.style.display = instalado() ? 'none' : 'block'; }
-  atualizar();
+  faixa.style.display = instalado() ? 'none' : 'block';
 
   window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); pedido = e; });
-  window.addEventListener('appinstalled', function () { faixa.style.display = 'none'; alert('App instalado! Abra pelo ícone "Ficha Vistoria" na tela inicial.'); });
+  window.addEventListener('appinstalled', function () { faixa.style.display = 'none'; pedido = null; alert('App instalado! Abra pelo ícone "Ficha Vistoria" na tela inicial.'); });
 
   faixa.onclick = function () {
     if (pedido) { pedido.prompt(); pedido.userChoice.then(function () { pedido = null; }); return; }
@@ -53,28 +53,15 @@
       'Toque em <b>Compartilhar</b> (quadrado com seta para cima), na barra de baixo.',
       'Role e toque em <b>Adicionar à Tela de Início</b>.',
       'Toque em <b>Adicionar</b>.']);
+    if (!ehMovel) return mostrar('Instalar no computador', [
+      'Use o <b>Chrome</b> ou o <b>Edge</b>.',
+      'Clique no ícone de <b>instalar</b> no lado direito da barra de endereço (monitor com seta).',
+      'Ou abra o menu <b>⋮</b> → <b>Transmitir, salvar e compartilhar</b> → <b>Instalar página como app</b>.',
+      'Para o celular, abra este mesmo link no aparelho.']);
     mostrar('Instalar no Android', [
       'Toque no menu <b>⋮</b> (canto superior direito do Chrome).',
       'Toque em <b>Instalar app</b> ou <b>Adicionar à tela inicial</b>.',
       'Confirme em <b>Instalar</b>.',
       'Se a opção não aparecer, feche a aba, abra o link de novo e repita.']);
   };
-
-  /* ---------- Logotipo Itazi fixo (tela, PDF e Word) ---------- */
-  fetch('icons/logo-itazi.png').then(function (r) { return r.blob(); }).then(function (b) {
-    var fr = new FileReader();
-    fr.onload = function () {
-      var url = fr.result, tent = 0;
-      (function aplicar() {
-        if (typeof db === 'undefined' || !db) { if (tent++ < 50) return setTimeout(aplicar, 100); return; }
-        setTimeout(function () {
-          logo = url;
-          try { cfgSet('logo', url); } catch (e) {}
-          var t = document.getElementById('logoTela');
-          if (t) t.innerHTML = '<img src="' + url + '" alt="Itazi Engenharia">';
-        }, 150);
-      })();
-    };
-    fr.readAsDataURL(b);
-  }).catch(function () {});
 })();
