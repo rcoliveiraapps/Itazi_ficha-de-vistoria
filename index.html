@@ -28,7 +28,7 @@
         .fichas-bar .info { font-size: 8.5pt; color: #4a5568; margin-top: 6px; }
         .btn-mini { border: 1px solid #a0aec0; background: #fff; color: var(--primary-color); border-radius: 4px; padding: 6px 10px; font-size: 9pt; font-weight: bold; cursor: pointer; font-family: Arial; }
         .btn-mini:hover { background: #ebf8ff; } .btn-mini.perigo { color: #c53030; } .btn-mini.on { background: var(--primary-color); color: #fff; }
-        fieldset { border: 1px solid var(--border-color); margin-bottom: 20px; padding: 15px; border-radius: 4px; }
+        fieldset { border: 1px solid var(--border-color); margin-bottom: 20px; padding: 15px; border-radius: 4px; min-width: 0; }
         legend { font-weight: bold; background-color: var(--primary-color); color: #fff; padding: 5px 15px; font-size: 10pt; text-transform: uppercase; border-radius: 3px; }
         .form-row { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 12px; }
         .form-group { flex: 1; min-width: 150px; display: flex; flex-direction: column; position: relative; }
@@ -71,6 +71,18 @@
         .cv-wrap canvas { display: block; width: 100%; height: auto; touch-action: none; cursor: crosshair; position: relative; }
         .cv-wrap canvas.cv-base { position: absolute; left: 0; top: 0; height: 100%; pointer-events: none; cursor: default; }
         .ferr { display: flex; gap: 5px; flex-wrap: wrap; margin: 6px 0; }
+        .cq-barra { display: flex; gap: 6px; overflow-x: auto; padding: 6px 0; }
+        .cq-barra .btn-mini { flex: 0 0 auto; padding: 8px 10px; }
+        .cq-dica { padding: 6px 10px; font-size: 9.5pt; background: #fffbea; border: 1px solid #f6e05e; border-radius: 4px; margin-bottom: 6px; }
+        .cq-tela { position: relative; height: min(62vh, 520px); border: 1px solid #718096; border-radius: 4px; overflow: hidden; background: #fff; }
+        .cq-tela canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+        .cq-flut { position: absolute; right: 6px; top: 6px; display: flex; flex-direction: column; gap: 6px; }
+        .cq-flut button { width: 38px; height: 38px; border-radius: 50%; border: 1px solid #a0aec0; background: #fff; font: bold 17px Arial; box-shadow: 0 2px 5px #0003; cursor: pointer; }
+        .cq-painel { display: none; border: 1px solid #cbd5e0; border-radius: 4px; padding: 8px 10px; margin-top: 6px; background: #f7fafc; font-size: 10pt; }
+        .cq-painel h4 { margin: 0 0 6px; color: var(--primary-color); font-size: 10pt; }
+        .cq-painel .lin { display: flex; align-items: center; gap: 6px; margin: 4px 0; flex-wrap: wrap; }
+        .cq-painel input { width: 90px; padding: 5px; border: 1px solid #a0aec0; border-radius: 4px; }
+        .cq-painel input.nome { width: 220px; }
         .actions { margin-top: 30px; text-align: center; background: #edf2f7; padding: 15px; border-radius: 5px; }
         .actions h3 { margin: 0 0 8px; }
         .btn { background-color: var(--primary-color); color: white; border: none; padding: 10px 20px; margin: 5px; font-size: 10pt; font-weight: bold; cursor: pointer; border-radius: 4px; font-family: Arial; }
@@ -899,8 +911,8 @@ function listaCK() {
     return L;
 }
 function valorCK(id) {
-    if (id === 'croqui') return !v('croqui_ativo') ? 'N/A' : croquis.some(c => c.base || c.desenho) ? 'Sim' : 'Não';
-    if (id === 'amarracao') return !v('croqui_ativo') ? 'N/A' : croquis.some(c => nAmarrDesenho(c) >= 2) ? 'Sim' : 'Não';
+    if (id === 'croqui') return !v('croqui_ativo') ? 'N/A' : croquis.some(temCroqui) ? 'Sim' : 'Não';
+    if (id === 'amarracao') return !v('croqui_ativo') ? 'N/A' : croquis.some(c => nAmarr(c) >= 2) ? 'Sim' : 'Não';
     return ck[id] || '';
 }
 function renderCK() {
@@ -911,141 +923,320 @@ function renderCK() {
 }
 function marcarCK(id, o) { ck[id] = ck[id] === o ? '' : o; renderCK(); autoSalvar(); }
 
-/* ===================== CROQUI ===================== */
-const CVW = 1200, CVH = 900, histCroqui = new Map();
-const LADOS = [['frente', 'Frente (lado da rua)'], ['fundos', 'Fundos'], ['esquerdo', 'Lado esquerdo (visto da rua)'], ['direito', 'Lado direito (visto da rua)'], ['livre', 'Marcada no desenho livre']];
-const novaAmarr = (lado = 'frente') => ({ lado, pos: '', ref: '', dist: '' });
-const croquiVazio = () => ({ id: uid(), vinc: '', desenho: '', base: '', larg: '', comp: '', testada: '', rua: '', ladoRua: 'direita',
-    amarr: [novaAmarr('frente'), novaAmarr('esquerdo')], amarrLivre: [], obs: '', _modo: 'medidas' });
-function migrarCroqui(c) {
-    c.amarr = (c.amarr || []).map((a, k) => ({ lado: a.lado || (k === 0 ? 'frente' : 'esquerdo'), pos: a.pos || '', ref: a.ref || '', dist: a.dist || '' }));
-    c.amarrLivre = c.amarrLivre || []; c.ladoRua = c.ladoRua || 'direita'; c.testada = c.testada || ''; c.rua = c.rua || '';
-    if (c.base === undefined) c.base = ''; if (!c._modo) c._modo = 'medidas'; return c;
+/* ===================== CROQUI "tocar e ligar" ===================== */
+/* geometria (metros) */
+const qSub = (a, b) => [a[0] - b[0], a[1] - b[1]], qAdd = (a, b) => [a[0] + b[0], a[1] + b[1]], qMul = (a, k) => [a[0] * k, a[1] * k];
+const qLen = a => Math.hypot(a[0], a[1]), qDist = (a, b) => qLen(qSub(a, b)), qUnit = a => { const l = qLen(a) || 1; return [a[0] / l, a[1] / l]; };
+const qDot = (a, b) => a[0] * b[0] + a[1] * b[1];
+function qPe(p, a, b, seg = true) { const d = qSub(b, a), L2 = qDot(d, d) || 1; let t = qDot(qSub(p, a), d) / L2; if (seg) t = Math.max(0, Math.min(1, t)); return [qAdd(a, qMul(d, t)), t]; }
+const qLados = el => el.pts.map((p, i) => [p, el.pts[(i + 1) % el.pts.length], i]);
+const qCentro = el => { const n = el.pts.length; return [el.pts.reduce((s, p) => s + p[0], 0) / n, el.pts.reduce((s, p) => s + p[1], 0) / n]; };
+function qDentro(p, pts) { let r = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const a = pts[i], b = pts[j];
+    if ((a[1] > p[1]) !== (b[1] > p[1]) && p[0] < (b[0] - a[0]) * (p[1] - a[1]) / (b[1] - a[1]) + a[0]) r = !r; } return r; }
+const qDistBorda = (p, el) => Math.min(...qLados(el).map(([a, b]) => qDist(p, qPe(p, a, b)[0])));
+function qInterno(el) {
+    const ce = qCentro(el); if (qDentro(ce, el.pts) && qDistBorda(ce, el) > 1) return ce;
+    const xs = el.pts.map(p => p[0]), ys = el.pts.map(p => p[1]); let best = ce, bd = -1;
+    for (let i = 1; i < 20; i++) for (let j = 1; j < 20; j++) {
+        const p = [Math.min(...xs) + (Math.max(...xs) - Math.min(...xs)) * i / 20, Math.min(...ys) + (Math.max(...ys) - Math.min(...ys)) * j / 20];
+        if (!qDentro(p, el.pts)) continue; const d = qDistBorda(p, el); if (d > bd) { bd = d; best = p; } }
+    return best;
 }
-const clamp = (x, a, b) => Math.min(Math.max(x, a), b);
-const nomeLado = l => ({ frente: 'Frente', fundos: 'Fundos', esquerdo: 'Lado esquerdo', direito: 'Lado direito', livre: 'Marcada no desenho livre' })[l || 'frente'];
-function descLado(a) {
-    const p = num(a.pos), lat = a.lado === 'esquerdo' || a.lado === 'direito';
-    if (a.lado === 'livre') return nomeLado('livre');
-    return nomeLado(a.lado) + (isNaN(p) ? ' (meio)' : ` (a ${a.pos} m ${lat ? 'da frente' : 'do canto esquerdo'})`);
-}
-/* geometria em metros: x = em direção à rua (frente da construção em x=0), y = ao longo da frente (0 = canto esquerdo visto da rua) */
-function geometriaCroqui(c) {
-    const W = num(c.larg), P = num(c.comp); if (!(W > 0 && P > 0)) return null;
-    const segs = (c.amarr || []).map((a, k) => ({ lado: a.lado || 'frente', ref: (a.ref || '').trim(), n: k + 1, d: num(a.dist), s0: num(a.pos) }))
-        .filter(a => a.d > 0 && a.lado !== 'livre').map(a => {
-            const lat = a.lado === 'esquerdo' || a.lado === 'direito';
-            const s = isNaN(a.s0) ? (lat ? P / 2 : W / 2) : clamp(a.s0, 0, lat ? P : W);
-            if (a.lado === 'frente') return { ...a, s, p0: [0, s], p1: [a.d, s] };
-            if (a.lado === 'fundos') return { ...a, s, p0: [-P, s], p1: [-P - a.d, s], div: { h: -P - a.d } };
-            if (a.lado === 'esquerdo') return { ...a, s, p0: [-s, 0], p1: [-s, -a.d], div: { v: -a.d } };
-            return { ...a, s, p0: [-s, W], p1: [-s, W + a.d], div: { v: W + a.d } };
-        });
-    const fr = segs.filter(a => a.lado === 'frente').sort((x, y) => x.s - y.s);
-    let rua = null;
-    if (fr.length) {
-        const a1 = fr[0], a2 = fr[fr.length - 1];
-        const ang = fr.length > 1 && Math.abs(a2.s - a1.s) > 0.01 ? Math.atan2(a2.d - a1.d, a2.s - a1.s) : 0;
-        rua = { x0: a1.d, y0: a1.s, ang, calc: Math.abs(ang) > 1e-4, n1: a1.n, n2: a2.n };
-    } else if ((c.rua || '').trim()) rua = { x0: Math.max(2, W * 0.3), y0: 0, ang: 0, estim: true };
-    const xRua = y => rua ? rua.x0 + (y - rua.y0) * Math.tan(rua.ang) : 1;
-    const T = num(c.testada), dE = segs.find(a => a.lado === 'esquerdo'), dD = segs.find(a => a.lado === 'direito');
-    let lote = null;
-    if (T > 0) { const y0 = dE ? -dE.d : dD ? W + dD.d - T : W / 2 - T / 2; lote = { y0, y1: y0 + T }; }
-    const fd = segs.find(a => a.lado === 'fundos');
-    const xBack = fd ? -P - fd.d : -P - Math.max(2, P * 0.25);
-    const ys = [0, W, ...segs.flatMap(a => [a.p0[1], a.p1[1]])]; if (lote) ys.push(lote.y0, lote.y1);
-    return { W, P, segs, rua, xRua, lote, xBack, yMin: Math.min(...ys) - 1.5, yMax: Math.max(...ys) + 1.5 };
-}
-function nAmarrDesenho(c) {
-    const G = geometriaCroqui(c), n = G ? G.segs.filter(a => a.ref).length : 0;
-    return n + new Set(c.amarrLivre || []).size;
-}
-function caixaRotulo(g, a, b, linhas, cor, longe) {
-    const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, L = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
-    let nx = -(b[1] - a[1]) / L, ny = (b[0] - a[0]) / L;
-    if (longe && Math.hypot(mx + nx - longe[0], my + ny - longe[1]) < Math.hypot(mx - nx - longe[0], my - ny - longe[1])) { nx = -nx; ny = -ny; }
-    g.save(); g.font = 'bold 20px Arial'; const w1 = g.measureText(linhas[0]).width; g.font = '16px Arial';
-    const w2 = linhas[1] ? g.measureText(linhas[1]).width : 0, w = Math.max(w1, w2) + 18, h = linhas[1] ? 52 : 32;
-    const off = Math.abs(nx) * w / 2 + Math.abs(ny) * h / 2 + 10;
-    const x = clamp(mx + nx * off - w / 2, 4, CVW - w - 4), y = clamp(my + ny * off - h / 2, 4, CVH - h - 4);
-    g.fillStyle = 'rgba(255,255,255,0.95)'; g.strokeStyle = cor; g.lineWidth = 2; g.setLineDash([]);
-    g.beginPath(); g.rect(x, y, w, h); g.fill(); g.stroke();
-    g.fillStyle = cor; g.textAlign = 'left'; g.textBaseline = 'top'; g.font = 'bold 20px Arial'; g.fillText(linhas[0], x + 9, y + 7);
-    if (linhas[1]) { g.font = '16px Arial'; g.fillText(linhas[1], x + 9, y + 31); }
-    g.restore();
-}
-const pontoCv = (g, p, cor) => { g.save(); g.fillStyle = cor; g.beginPath(); g.arc(p[0], p[1], 7, 0, 2 * Math.PI); g.fill(); g.restore(); };
-function nomeConstrucao(c) {
-    const b = c.vinc !== '' && c.vinc != null && benf[+c.vinc];
-    return b ? `${RUR() ? 'Nº' : 'ITEM'} ${nn(+c.vinc)}${b.tipo ? ' – ' + b.tipo.toUpperCase() : ''}` : 'CONSTRUÇÃO';
-}
-/* camada de base: desenho em escala gerado pelas medidas (atualiza sozinho) */
-function desenharBase(i) {
-    const c = croquis[i], cv = $('cvb_' + i); if (!cv || !c) return;
-    const g = cv.getContext('2d'); g.clearRect(0, 0, CVW, CVH);
-    const G = geometriaCroqui(c); if (!G) { c.base = ''; return; }
-    const { W, P, segs, rua, xRua, lote, xBack, yMin, yMax } = G;
-    const AZ = '#0b2a6b', VM = '#c53030', CZ = '#555';
-    const nrm = rua ? [Math.cos(rua.ang), -Math.sin(rua.ang)] : [1, 0];
-    const pts = [[0, 0], [0, W], [-P, 0], [-P, W], [xBack, yMin], [xBack, yMax]];
-    segs.forEach(a => pts.push(a.p0, a.p1));
-    if (rua) [yMin, yMax].forEach(y => pts.push([xRua(y), y], [xRua(y) + 3 * nrm[0], y + 3 * nrm[1]]));
-    const rot = { direita: ([x, y]) => [x, -y], abaixo: ([x, y]) => [y, x], esquerda: ([x, y]) => [-x, y], acima: ([x, y]) => [-y, -x] }[c.ladoRua] || (([x, y]) => [x, -y]);
-    const R = pts.map(rot), xs = R.map(p => p[0]), ys = R.map(p => p[1]);
-    const mL = 150, mR = 150, mT = 110, mB = 150, minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
-    const e = Math.min((CVW - mL - mR) / (maxX - minX || 1), (CVH - mT - mB) / (maxY - minY || 1));
-    const ox = mL + ((CVW - mL - mR) - (maxX - minX) * e) / 2 - minX * e, oy = mT + ((CVH - mT - mB) - (maxY - minY) * e) / 2 - minY * e;
-    const T = p => { const [X, Y] = rot(p); return [ox + X * e, oy + Y * e]; };
-    const reta = (a, b, cor, w, dash) => { g.save(); g.strokeStyle = cor; g.lineWidth = w; g.setLineDash(dash || []); g.beginPath(); g.moveTo(...T(a)); g.lineTo(...T(b)); g.stroke(); g.restore(); };
-    const txt = (s, p, cor, fonte) => { g.save(); g.fillStyle = cor; g.font = fonte; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(s, p[0], p[1]); g.restore(); };
-    /* divisas (tracejadas) */
-    const divV = y => reta([xRua(y), y], [xBack, y], '#777', 3, [14, 9]);
-    if (lote) { divV(lote.y0); divV(lote.y1); }
-    segs.forEach(a => { if (a.div && a.div.v != null && !(lote && Math.abs(a.div.v - lote.y0) < 1e-6)) divV(a.div.v);
-        if (a.div && a.div.h != null) reta([a.div.h, lote ? lote.y0 : yMin + 1], [a.div.h, lote ? lote.y1 : yMax - 1], '#777', 3, [14, 9]); });
-    if (lote || segs.some(a => a.div)) { const p = T([xBack, lote ? lote.y0 : yMin + 1]); txt('DIVISA', [p[0], p[1]], '#777', '14px Arial'); }
-    /* rua */
-    if (rua) {
-        const a = [xRua(yMin), yMin], b = [xRua(yMax), yMax];
-        reta(a, b, CZ, 7, rua.estim ? [20, 10] : null);
-        reta([a[0] + 2.5 * nrm[0], a[1] + 2.5 * nrm[1]], [b[0] + 2.5 * nrm[0], b[1] + 2.5 * nrm[1]], CZ, 2);
-        const ym = (yMin + yMax) / 2, pm = [xRua(ym) + 1.25 * nrm[0], ym + 1.25 * nrm[1]];
-        txt((c.rua || 'RUA').toUpperCase(), T(pm), CZ, 'bold 22px Arial');
-        const y8 = yMin + (yMax - yMin) * 0.88; txt('ALINHAMENTO PREDIAL', T([xRua(y8) - 0.6 * nrm[0], y8 - 0.6 * nrm[1]]), '#777', '14px Arial');
-        if (rua.estim) txt('(posição da rua sem amarração da frente)', T([xRua(yMin + 1) + 1.25 * nrm[0], yMin + 1]), '#777', '14px Arial');
+const elById = (c, id) => (c.els || []).find(e => e.id === id);
+const medInf = (el, i) => el.med && el.med[i] > 0 ? el.med[i] : null;
+const medReal = (el, i) => { const [a, b] = qLados(el)[i]; return medInf(el, i) || qDist(a, b); };
+/* amarração: sai em esquadro com a parede e para na referência */
+function fimAmarr(c, a) {
+    const r = elById(c, a.ref), ce = elById(c, a.constr); if (!r) return a.e;
+    if (ce && a.w != null && qLados(ce)[a.w]) {
+        const [p, q] = qLados(ce)[a.w]; let n = qUnit([-(q[1] - p[1]), q[0] - p[0]]);
+        const foot = qPe(a.s, r.a, r.b, false)[0]; if (qDot(qSub(foot, a.s), n) < 0) n = qMul(n, -1);
+        const d = qSub(r.b, r.a), den = n[0] * d[1] - n[1] * d[0];
+        if (Math.abs(den) > 1e-6) { const w = qSub(r.a, a.s), t = (w[0] * d[1] - w[1] * d[0]) / den; if (t > 0) return qAdd(a.s, qMul(n, t)); }
     }
-    /* construção */
-    const cs = [[0, 0], [0, W], [-P, W], [-P, 0]].map(T);
-    g.save(); g.beginPath(); g.moveTo(...cs[0]); cs.slice(1).forEach(p => g.lineTo(...p)); g.closePath();
-    g.fillStyle = 'rgba(11,42,107,0.08)'; g.fill(); g.strokeStyle = AZ; g.lineWidth = 5; g.stroke(); g.restore();
-    const cc = T([-P / 2, W / 2]);
-    txt(nomeConstrucao(c), [cc[0], cc[1] - 13], AZ, 'bold 21px Arial'); txt(`${fmtNum(W)} × ${fmtNum(P)} m`, [cc[0], cc[1] + 14], AZ, '18px Arial');
-    txt(`${fmtNum(W)} m`, T([-Math.min(P * 0.12, 1.2), W / 2]), AZ, 'bold 16px Arial');
-    txt(`${fmtNum(P)} m`, T([-P / 2, Math.min(W * 0.1, 1)]), AZ, 'bold 16px Arial');
-    /* amarrações */
-    segs.forEach(a => { const p0 = T(a.p0), p1 = T(a.p1);
-        g.save(); g.strokeStyle = VM; g.lineWidth = 4; g.beginPath(); g.moveTo(...p0); g.lineTo(...p1); g.stroke(); g.restore();
-        pontoCv(g, p0, VM); pontoCv(g, p1, VM);
-        caixaRotulo(g, p0, p1, [`AMARRAÇÃO ${a.n} – ${fmtNum(a.d)} m`, `até ${(a.ref || '—').toUpperCase()}`], VM, cc); });
-    /* rodapé: escala e inclinação */
-    const L = [1, 2, 5, 10, 20, 50, 100, 200].find(l => l * e >= 80) || 200, sx = 40, sy = CVH - 60, seg = L * e / 5;
-    g.save(); g.strokeStyle = AZ; g.lineWidth = 1.5;
-    for (let k = 0; k < 5; k++) { g.fillStyle = k % 2 ? '#fff' : AZ; g.fillRect(sx + k * seg, sy, seg, 10); g.strokeRect(sx + k * seg, sy, seg, 10); }
-    g.fillStyle = AZ; g.font = '15px Arial'; g.textBaseline = 'top'; g.textAlign = 'left'; g.fillText('0', sx - 4, sy + 14); g.fillText(`${L} m`, sx + 5 * seg - 10, sy + 14);
-    g.fillStyle = '#555'; g.fillText('Desenho em escala (gerado pelas medidas)', sx + 5 * seg + 50, sy - 2);
-    if (rua && rua.calc) { g.fillStyle = VM; g.font = 'bold 16px Arial';
-        g.fillText(`Alinhamento inclinado: ${fmtNum(Math.abs(rua.ang * 180 / Math.PI), 1)}° em relação à frente (calculado pelas amarrações ${rua.n1} e ${rua.n2})`, sx, sy - 34); }
-    g.restore();
-    c.base = cv.toDataURL('image/png');
+    return qPe(a.s, r.a, r.b, false)[0];
 }
-const tBase = {};
-function desenharBaseDeb(i) { clearTimeout(tBase[i]); tBase[i] = setTimeout(() => { desenharBase(i); autoSalvar(); renderCKdeb(); }, 250); }
-function setCroqui(i, k, val) { croquis[i][k] = val; autoSalvar(); desenharBaseDeb(i); }
-function setAmarr(i, k, campo, val) { croquis[i].amarr[k][campo] = val; autoSalvar(); desenharBaseDeb(i); }
-function addAmarr(i) { const c = croquis[i]; if (c.amarr.length >= 4) return; c.amarr.push(novaAmarr(['frente', 'esquerdo', 'direito', 'fundos'].find(l => !c.amarr.some(a => a.lado === l)) || 'frente')); renderCroquis(); autoSalvar(); }
-function removerAmarr(i, k) { const c = croquis[i]; c.amarr.splice(k, 1);
-    c.amarrLivre = (c.amarrLivre || []).filter(n => n !== k + 1).map(n => n > k + 1 ? n - 1 : n); renderCroquis(); autoSalvar(); }
+/* inclinação calculada pelas distâncias da trena (duas amarrações da mesma parede até a mesma referência) */
+function inclinacaoRef(c, r) {
+    const ams = (c.els || []).filter(e => e.t === 'amarr' && e.ref === r.id); if (ams.length < 2) return null;
+    let melhor = null;
+    for (let x = 0; x < ams.length; x++) for (let y = x + 1; y < ams.length; y++) {
+        const a1 = ams[x], a2 = ams[y]; if (a1.constr !== a2.constr) continue;
+        const ce = elById(c, a1.constr); if (!ce) continue;
+        let sep = qDist(a1.s, a2.s);
+        if (a1.w != null && a1.w === a2.w) { const [p, q] = qLados(ce)[a1.w]; sep = sep * medReal(ce, a1.w) / (qDist(p, q) || 1); }
+        if (sep < 0.1) continue;
+        const gr = Math.atan(Math.abs(a1.d - a2.d) / sep) * 180 / Math.PI;
+        if (!melhor || sep > melhor.sep) melhor = { graus: gr, n: [a1.n, a2.n], sep };
+    }
+    return melhor && melhor.graus > 0.3 ? melhor : null;
+}
+const temCroqui = c => (c.els || []).some(e => e.t === 'constr') || !!c.legado;
+const nAmarr = c => (c.els || []).filter(e => e.t === 'amarr').length + (c.legadoAmarr || 0);
+const croquiVazio = () => ({ id: uid(), vinc: '', els: [], seq: 1, grade: 1, mostrarMed: true, ajustar: false, obs: '' });
+function migrarCroqui(c) {
+    if (!Array.isArray(c.els)) {
+        c.els = []; c.seq = 1;
+        if (c.base || c.desenho) { c.legado = { base: c.base || '', desenho: c.desenho || '' };
+            c.legadoAmarr = (c.amarr || []).filter(a => a.ref && num(a.dist) > 0).length + (c.amarrLivre || []).length; }
+        ['base', 'desenho', 'amarr', 'amarrLivre', 'larg', 'comp', 'testada', 'rua', 'ladoRua', '_modo', '_ferr'].forEach(k => delete c[k]);
+    }
+    if (!c.grade) c.grade = 1; if (c.mostrarMed === undefined) c.mostrarMed = true; if (!c.seq) c.seq = 1; c.obs = c.obs || '';
+    return c;
+}
+/* desenho (tela e PDF) */
+const Q_AZ = '#0b2a6b', Q_VM = '#c53030', Q_CZ = '#4a5568', Q_SEL = '#dd6b20';
+function desenharCroqui(ctx, w, h, vw, c, opc = {}) {
+    const k = opc.k || 1, F = n => Math.round(n * k), hit = [];
+    const T = p => [vw.ox + p[0] * vw.s, vw.oy + p[1] * vw.s];
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
+    let passo = c.grade || 1; while (passo * vw.s < 12 * k) passo *= 2;
+    ctx.lineWidth = 1;
+    const x0 = Math.floor(-vw.ox / vw.s / passo) * passo, y0 = Math.floor(-vw.oy / vw.s / passo) * passo;
+    const cor5 = q => Math.abs(Math.round(q / 5) * 5 - q) < 1e-6 ? '#cfd6e2' : '#edf0f5';
+    for (let x = x0; x * vw.s + vw.ox < w; x += passo) { const X = vw.ox + x * vw.s; ctx.strokeStyle = cor5(x); ctx.beginPath(); ctx.moveTo(X + .5, 0); ctx.lineTo(X + .5, h); ctx.stroke(); }
+    for (let y = y0; y * vw.s + vw.oy < h; y += passo) { const Y = vw.oy + y * vw.s; ctx.strokeStyle = cor5(y); ctx.beginPath(); ctx.moveTo(0, Y + .5); ctx.lineTo(w, Y + .5); ctx.stroke(); }
+    const giro = (t, p, ang, fonte, cor) => { ctx.save(); ctx.translate(p[0], p[1]); let a = ang; if (a > Math.PI / 2) a -= Math.PI; if (a < -Math.PI / 2) a += Math.PI;
+        ctx.rotate(a); ctx.font = fonte; ctx.fillStyle = cor; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(t, 0, 0); ctx.restore(); };
+    const medeCaixa = (l1, l2) => { ctx.font = `bold ${F(13)}px Arial`; const w1 = ctx.measureText(l1).width; ctx.font = `${F(11)}px Arial`; const w2 = l2 ? ctx.measureText(l2).width : 0;
+        return [Math.max(w1, w2) + F(12), l2 ? F(34) : F(20)]; };
+    const caixa = (x, y, l1, l2, cor) => { const [bw, bh] = medeCaixa(l1, l2);
+        ctx.fillStyle = 'rgba(255,255,255,.95)'; ctx.strokeStyle = cor; ctx.lineWidth = 1.5 * k; ctx.setLineDash([]);
+        ctx.fillRect(x - bw / 2, y - bh / 2, bw, bh); ctx.strokeRect(x - bw / 2, y - bh / 2, bw, bh);
+        ctx.fillStyle = cor; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.font = `bold ${F(13)}px Arial`; ctx.fillText(l1, x, l2 ? y - F(7) : y); if (l2) { ctx.font = `${F(11)}px Arial`; ctx.fillText(l2, x, y + F(9)); } };
+    const els = c.els || [], constrs = els.filter(e => e.t === 'constr'), sel = id => id === opc.selId;
+    els.filter(e => e.t === 'ref').forEach(r => {
+        const a = T(r.a), b = T(r.b), ang = Math.atan2(b[1] - a[1], b[0] - a[0]);
+        ctx.save(); ctx.strokeStyle = sel(r.id) ? Q_SEL : r.kind === 'rua' ? Q_CZ : '#718096'; ctx.lineWidth = (r.kind === 'rua' ? 6 : 3) * k; ctx.setLineDash(r.kind === 'rua' ? [] : [12 * k, 8 * k]);
+        ctx.beginPath(); ctx.moveTo(...a); ctx.lineTo(...b); ctx.stroke(); ctx.restore();
+        const m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], n = qUnit([-(b[1] - a[1]), b[0] - a[0]]);
+        let lado = 1; if (constrs.length) { const cc = T(qInterno(constrs[0])); if (qDot(qSub(cc, m), n) > 0) lado = -1; }
+        let nome = (r.nome || (r.kind === 'rua' ? 'RUA' : 'DIVISA')).toUpperCase(); const inc = inclinacaoRef(c, r); if (inc) nome += `  (inclinada ${fmtNum(inc.graus, 1)}°)`;
+        giro(nome, qAdd(m, qMul(n, 18 * k * lado)), ang, `bold ${F(r.kind === 'rua' ? 15 : 12)}px Arial`, sel(r.id) ? Q_SEL : Q_CZ);
+    });
+    constrs.forEach(el => {
+        const P = el.pts.map(T);
+        ctx.beginPath(); ctx.moveTo(...P[0]); P.slice(1).forEach(p => ctx.lineTo(...p)); ctx.closePath();
+        ctx.fillStyle = 'rgba(11,42,107,.08)'; ctx.fill(); ctx.strokeStyle = sel(el.id) ? Q_SEL : Q_AZ; ctx.lineWidth = 4 * k; ctx.setLineDash([]); ctx.stroke();
+        const ci = qInterno(el), cc = T(ci);
+        ctx.fillStyle = Q_AZ; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = `bold ${F(14)}px Arial`;
+        const nome = (el.nome || 'CONSTRUÇÃO').toUpperCase(), lg = 2 * qDistBorda(ci, el) * vw.s - 8;
+        if (ctx.measureText(nome).width <= lg || !nome.includes(' ')) ctx.fillText(nome, cc[0], cc[1]);
+        else { const pw = nome.split(' '), kk = Math.ceil(pw.length / 2); ctx.fillText(pw.slice(0, kk).join(' '), cc[0], cc[1] - F(9)); ctx.fillText(pw.slice(kk).join(' '), cc[0], cc[1] + F(9)); }
+        if (c.mostrarMed !== false) qLados(el).forEach(([p, q, i]) => {
+            const a = T(p), b = T(q), m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], n = qUnit([-(b[1] - a[1]), b[0] - a[0]]);
+            const fora = qDot(qSub(m, cc), n) > 0 ? 1 : -1, pos = qAdd(m, qMul(n, 14 * k * fora)), inf = medInf(el, i);
+            giro(inf ? fmtNum(inf) + ' m' : '≈ ' + fmtNum(qDist(p, q)) + ' m', pos, Math.atan2(b[1] - a[1], b[0] - a[0]),
+                `${inf ? 'bold' : 'italic'} ${F(12)}px Arial`, sel(el.id) ? Q_SEL : inf ? Q_AZ : '#718096');
+            hit.push({ x: pos[0], y: pos[1], id: el.id, i });
+        });
+    });
+    const ocup = [], livre = (x, y, bw, bh) => !ocup.some(o => Math.abs(o[0] - x) < (o[2] + bw) / 2 + 4 && Math.abs(o[1] - y) < (o[3] + bh) / 2 + 4);
+    els.filter(e => e.t === 'amarr').forEach(am => {
+        const a = T(am.s), b = T(am.e), cor = sel(am.id) ? Q_SEL : Q_VM;
+        ctx.strokeStyle = cor; ctx.lineWidth = 3 * k; ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(...a); ctx.lineTo(...b); ctx.stroke();
+        [a, b].forEach(p => { ctx.fillStyle = cor; ctx.beginPath(); ctx.arc(p[0], p[1], 5 * k, 0, 7); ctx.fill(); });
+        const ce = elById(c, am.constr), m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], n = qUnit([-(b[1] - a[1]), b[0] - a[0]]);
+        let lado = 1; if (ce) { const cc = T(qInterno(ce)); if (qDot(qSub(m, cc), n) < 0) lado = -1; }
+        const ref = elById(c, am.ref), l1 = `AMARRAÇÃO ${am.n} – ${fmtNum(am.d)} m`, l2 = 'até ' + ((ref && ref.nome) || '—').toUpperCase();
+        const [bw, bh] = medeCaixa(l1, l2), base = Math.abs(n[0]) * bw / 2 + Math.abs(n[1]) * bh / 2 + 6 * k;
+        let x, y, tent = 0, off = base;
+        do { x = m[0] + n[0] * lado * off; y = m[1] + n[1] * lado * off; off += 14 * k; tent++; } while (!livre(x, y, bw, bh) && tent < 25);
+        x = Math.max(bw / 2 + 2, Math.min(w - bw / 2 - 2, x)); y = Math.max(bh / 2 + 2, Math.min(h - bh / 2 - 2, y)); ocup.push([x, y, bw, bh]);
+        if (qDist([x, y], m) > base + 20 * k) { ctx.strokeStyle = cor; ctx.lineWidth = 1 * k; ctx.setLineDash([3 * k, 3 * k]); ctx.beginPath(); ctx.moveTo(...m); ctx.lineTo(x, y); ctx.stroke(); ctx.setLineDash([]); }
+        caixa(x, y, l1, l2, cor);
+    });
+    if (opc.temp) { const t = opc.temp; ctx.strokeStyle = Q_SEL; ctx.fillStyle = Q_SEL; ctx.lineWidth = 3; ctx.setLineDash([6, 5]);
+        if (t.pts) { const P = t.pts.map(T); ctx.beginPath(); ctx.moveTo(...P[0]); P.slice(1).forEach(p => ctx.lineTo(...p)); if (t.cur) ctx.lineTo(...T(t.cur)); ctx.stroke();
+            P.forEach(p => { ctx.beginPath(); ctx.arc(p[0], p[1], 6, 0, 7); ctx.fill(); }); }
+        if (t.ini) { const p = T(t.ini); ctx.beginPath(); ctx.arc(p[0], p[1], 7, 0, 7); ctx.fill(); if (t.cur && t.ret) { const q = T(t.cur); ctx.strokeRect(p[0], p[1], q[0] - p[0], q[1] - p[1]); } }
+        ctx.setLineDash([]); }
+    return hit;
+}
+function limitesCroqui(c) {
+    const P = []; (c.els || []).forEach(e => { if (e.pts) P.push(...e.pts); if (e.a) P.push(e.a, e.b); if (e.s) P.push(e.s, e.e); });
+    if (!P.length) return null;
+    return { x0: Math.min(...P.map(p => p[0])), x1: Math.max(...P.map(p => p[0])), y0: Math.min(...P.map(p => p[1])), y1: Math.max(...P.map(p => p[1])) };
+}
+function enquadrarCroqui(vw, w, h, marg, c) {
+    const L = limitesCroqui(c); if (!L) { vw.s = 30; vw.ox = 50; vw.oy = 50; return vw; }
+    vw.s = Math.min((w - 2 * marg) / Math.max(L.x1 - L.x0, 1), (h - 2 * marg) / Math.max(L.y1 - L.y0, 1), 120);
+    vw.ox = (w - (L.x1 - L.x0) * vw.s) / 2 - L.x0 * vw.s; vw.oy = (h - (L.y1 - L.y0) * vw.s) / 2 - L.y0 * vw.s; return vw;
+}
+/* imagem do croqui para PDF e Word */
+function compoeCroqui(c) {
+    return new Promise(res => {
+        const W = 1200, H = 860, cv = document.createElement('canvas'); cv.width = W; cv.height = H; const g = cv.getContext('2d');
+        if ((c.els || []).length) {
+            const vw = enquadrarCroqui({}, W, H - 60, 160, c); desenharCroqui(g, W, H, vw, c, { k: 1.6 });
+            const L = [1, 2, 5, 10, 20, 50, 100].find(l => l * vw.s >= 120) || 100, seg = L * vw.s / 5, sx = 30, sy = H - 46;
+            for (let i = 0; i < 5; i++) { g.fillStyle = i % 2 ? '#fff' : Q_AZ; g.fillRect(sx + i * seg, sy, seg, 12); g.strokeStyle = Q_AZ; g.strokeRect(sx + i * seg, sy, seg, 12); }
+            g.fillStyle = Q_AZ; g.font = '20px Arial'; g.textAlign = 'left'; g.textBaseline = 'top'; g.fillText('0', sx - 4, sy + 16); g.fillText(L + ' m', sx + 5 * seg - 10, sy + 16);
+            g.fillStyle = '#4a5568'; g.fillText('Croqui – medidas em azul conferidas com trena; "≈" = medida do desenho', sx + 5 * seg + 60, sy - 2);
+            return res(cv.toDataURL('image/jpeg', 0.92));
+        }
+        g.fillStyle = '#fff'; g.fillRect(0, 0, W, H);
+        const camadas = c.legado ? [c.legado.base, c.legado.desenho].filter(Boolean) : [];
+        const prox = () => { if (!camadas.length) return res(cv.toDataURL('image/jpeg', 0.92));
+            const im = new Image(); im.onload = () => { g.drawImage(im, 0, 0, W, im.height * W / im.width); prox(); }; im.onerror = prox; im.src = camadas.shift(); };
+        prox();
+    });
+}
+/* ---------- editor (um por croqui) ---------- */
+const DICAS_CQ = {
+    ret: t => t ? 'Toque no <b>canto oposto</b> da construção.' : 'Toque no <b>primeiro canto</b> da construção (retangular).',
+    pol: t => !t ? 'Toque no <b>primeiro canto</b>. As paredes saem sempre retas (90°).' : `Toque nos próximos cantos. Para fechar, toque no <b>primeiro ponto</b> (${t.pts.length} cantos).`,
+    rua: t => t ? 'Toque no <b>fim</b> da rua (pode ser inclinada).' : 'Toque no <b>início</b> da rua.',
+    div: t => t ? 'Toque no <b>fim</b> da divisa / muro.' : 'Toque no <b>início</b> da divisa ou muro.',
+    amarr: t => t ? 'Agora toque na <b>rua ou divisa</b> até onde foi medido.' : 'Toque na <b>parede da construção</b> de onde saiu a trena.',
+    sel: () => 'Toque num elemento para <b>editar ou apagar</b>; toque no <b>número da parede</b> para digitar a medida da trena. Arraste para mover.'
+};
+const editores = {};
+function criarEditor(i) {
+    const c = croquis[i], cv = $('cq_' + i); if (!cv) return;
+    const tela = cv.parentElement, g = cv.getContext('2d');
+    const E = { ferr: 'ret', temp: null, selId: null, desf: [], view: { s: 30, ox: 50, oy: 50 }, hit: [] };
+    editores[c.id] = E;
+    const snapG = p => [Math.round(p[0] / c.grade) * c.grade, Math.round(p[1] / c.grade) * c.grade];
+    const S2W = p => [(p[0] - E.view.ox) / E.view.s, (p[1] - E.view.oy) / E.view.s];
+    const W2S = p => [E.view.ox + p[0] * E.view.s, E.view.oy + p[1] * E.view.s];
+    const novoId = () => 'e' + (c.seq++);
+    const snapshot = () => { E.desf.push(JSON.stringify({ els: c.els, seq: c.seq })); if (E.desf.length > 40) E.desf.shift(); };
+    const salvar = () => { autoSalvar(); renderCKdeb(); };
+    const desenhar = () => { const r = tela.getBoundingClientRect(); E.hit = desenharCroqui(g, r.width, r.height, E.view, c, { selId: E.selId, temp: E.temp }); };
+    const ajustar = () => { const r = tela.getBoundingClientRect(); if (!r.width) return; const dpr = window.devicePixelRatio || 1;
+        cv.width = r.width * dpr; cv.height = r.height * dpr; g.setTransform(dpr, 0, 0, dpr, 0, 0); desenhar(); };
+    const enquadrar = () => { const r = tela.getBoundingClientRect(); enquadrarCroqui(E.view, r.width, r.height, 60, c); desenhar(); };
+    const atualizar = () => { $('cqd_' + i).innerHTML = DICAS_CQ[E.ferr](E.temp); $('cqb_' + i).querySelectorAll('[data-f]').forEach(b => b.classList.toggle('on', b.dataset.f === E.ferr)); desenhar(); painel(); };
+    E.setFerr = f => { E.ferr = f; E.temp = null; if (f !== 'sel') E.selId = null; atualizar(); };
+    const nomeConstr = () => { const b = c.vinc !== '' && c.vinc != null && benf[+c.vinc]; const n = c.els.filter(e => e.t === 'constr').length;
+        return n === 0 && b ? `${RUR() ? 'Nº' : 'Item'} ${nn(+c.vinc)}${b.tipo ? ' – ' + b.tipo : ''}` : 'Construção ' + (n + 1); };
+    function protoConstr(pts) { snapshot(); c.els.push({ id: novoId(), t: 'constr', nome: nomeConstr(), pts, med: {} }); salvar(); toast('Construção criada – toque em ✋ e no número da parede para digitar a medida'); }
+    function pontoConstr(p) { let best = null;
+        c.els.filter(e => e.t === 'constr').forEach(el => qLados(el).forEach(([a, b, k]) => { let [q, t] = qPe(p, a, b); const L = qDist(a, b), ps = c.grade / 2;
+            t = Math.round(t * L / ps) * ps / L; q = qAdd(a, qMul(qSub(b, a), Math.max(0, Math.min(1, t)))); const d = qDist(p, q); if (!best || d < best.d) best = { d, q, el, k }; }));
+        return best; }
+    function refProx(p) { let best = null; c.els.filter(e => e.t === 'ref').forEach(r => { const d = qDist(p, qPe(p, r.a, r.b)[0]); if (!best || d < best.d) best = { d, r }; }); return best; }
+    function acerto(pw) { const tol = 22 / E.view.s; let best = null;
+        c.els.forEach(e => { let d = Infinity;
+            if (e.t === 'ref') d = qDist(pw, qPe(pw, e.a, e.b)[0]);
+            if (e.t === 'amarr') d = qDist(pw, qPe(pw, e.s, e.e)[0]) * 0.8;
+            if (e.t === 'constr') { qLados(e).forEach(([a, b]) => d = Math.min(d, qDist(pw, qPe(pw, a, b)[0]))); if (qDentro(pw, e.pts)) d = Math.min(d, tol * 0.9); }
+            if (d < tol && (!best || d < best.d)) best = { d, id: e.id }; });
+        return best ? best.id : null; }
+    function toque(pw) {
+        const tol = 28 / E.view.s;
+        if (E.ferr === 'ret') { const p = snapG(pw);
+            if (!E.temp) { E.temp = { ini: p, ret: 1 }; return atualizar(); }
+            const a = E.temp.ini; E.temp = null;
+            if (Math.abs(p[0] - a[0]) < c.grade / 2 || Math.abs(p[1] - a[1]) < c.grade / 2) { toast('Toque mais longe do primeiro canto'); return atualizar(); }
+            protoConstr([a, [p[0], a[1]], p, [a[0], p[1]]]); return atualizar(); }
+        if (E.ferr === 'pol') { let p = snapG(pw);
+            if (!E.temp) { E.temp = { pts: [p] }; return atualizar(); }
+            const last = E.temp.pts.at(-1);
+            if (E.temp.pts.length >= 3 && qDist(pw, E.temp.pts[0]) < tol) {
+                const f = E.temp.pts[0], pts = E.temp.pts.slice(), ult = pts.at(-1);
+                if (Math.abs(ult[0] - f[0]) > 1e-6 && Math.abs(ult[1] - f[1]) > 1e-6) { const pen = pts.at(-2); pts.push(Math.abs(ult[0] - pen[0]) < 1e-6 ? [f[0], ult[1]] : [ult[0], f[1]]); }
+                E.temp = null; protoConstr(pts); return atualizar(); }
+            p = Math.abs(p[0] - last[0]) >= Math.abs(p[1] - last[1]) ? [p[0], last[1]] : [last[0], p[1]];
+            if (qDist(p, last) < c.grade / 2) return; E.temp.pts.push(p); return atualizar(); }
+        if (E.ferr === 'rua' || E.ferr === 'div') { const p = snapG(pw);
+            if (!E.temp) { E.temp = { ini: p }; return atualizar(); }
+            const a = E.temp.ini; E.temp = null; if (qDist(a, p) < c.grade) return atualizar();
+            const nome = prompt(E.ferr === 'rua' ? 'Nome da rua / estrada / rodovia:' : 'Nome (ex.: Divisa lateral, Divisa dos fundos, Muro, Cerca):', E.ferr === 'rua' ? 'Rua ' : 'Divisa ');
+            if (nome === null) return atualizar();
+            snapshot(); c.els.push({ id: novoId(), t: 'ref', kind: E.ferr === 'rua' ? 'rua' : 'divisa', nome: nome.trim(), a, b: p }); salvar(); return atualizar(); }
+        if (E.ferr === 'amarr') {
+            if (!E.temp) { const pc = pontoConstr(pw); if (!pc || pc.d > tol * 1.5) return toast('Toque sobre a parede da construção');
+                E.temp = { ini: pc.q, constr: pc.el.id, w: pc.k }; return atualizar(); }
+            const pr = refProx(pw); if (!pr || pr.d > tol * 2) return toast('Toque sobre a rua ou divisa (desenhe-a antes, se ainda não existir)');
+            const am = { id: '', t: 'amarr', s: E.temp.ini, constr: E.temp.constr, ref: pr.r.id, w: E.temp.w }; am.e = fimAmarr(c, am);
+            const medido = qDist(am.s, am.e); if (medido < 0.05) { E.temp = null; toast('O ponto já está sobre a referência'); return atualizar(); }
+            const resp = prompt(`Distância medida com a trena até "${pr.r.nome}" (m):`, fmtNum(medido)); if (resp === null) { E.temp = null; return atualizar(); }
+            const d = num(resp); if (!(d > 0)) return toast('Distância inválida');
+            snapshot(); am.id = novoId(); am.d = d; am.n = c.els.filter(e => e.t === 'amarr').length + 1; c.els.push(am); E.temp = null; salvar(); return atualizar(); }
+        if (E.ferr === 'sel') { const ps = W2S(pw), hm = c.mostrarMed !== false && E.hit.find(o => Math.abs(o.x - ps[0]) < 34 && Math.abs(o.y - ps[1]) < 14);
+            if (hm) { E.selId = hm.id; atualizar(); return editarMedPrompt(hm.id, hm.i); }
+            E.selId = acerto(pw); atualizar(); }
+    }
+    function reancorar(el) { c.els.filter(e => e.t === 'amarr' && e.constr === el.id).forEach(a => {
+        let best = null; qLados(el).forEach(([p, q]) => { const f = qPe(a.s, p, q)[0], d = qDist(a.s, f); if (!best || d < best.d) best = { d, f }; }); a.s = best.f; a.e = fimAmarr(c, a); }); }
+    function ajustarLado(el, i, L) { const n = el.pts.length, a = el.pts[i], b = el.pts[(i + 1) % n], u = qUnit(qSub(b, a)), delta = qMul(u, L - qDist(a, b));
+        const j = (i + 1) % n, k = (i + 2) % n, pj = el.pts[j], pk = el.pts[k], perp = Math.abs(qDot(qUnit(qSub(pk, pj)), u)) < 1e-6;
+        el.pts[j] = qAdd(pj, delta); if (perp && k !== i) el.pts[k] = qAdd(pk, delta); reancorar(el); }
+    function gravarMed(el, k, val) { const t = String(val).trim(); snapshot(); el.med = el.med || {};
+        if (!t) delete el.med[k]; else { const L = num(t); if (!(L > 0)) { E.desf.pop(); return toast('Medida inválida'); } el.med[k] = L; if (c.ajustar) ajustarLado(el, k, L); }
+        salvar(); atualizar(); }
+    function editarMedPrompt(id, k) { const el = elById(c, id), [a, b] = qLados(el)[k];
+        const r = prompt(`Medida da parede ${k + 1} (m) – medida com trena.\nDesenhada: ≈ ${fmtNum(qDist(a, b))} m. Em branco = usa a do desenho.`, medInf(el, k) ? fmtNum(el.med[k]) : '');
+        if (r !== null) gravarMed(el, k, r); }
+    function painel() {
+        const P = $('cqp_' + i), el = E.ferr === 'sel' ? elById(c, E.selId) : null; if (!el) { P.innerHTML = ''; P.style.display = 'none'; return; }
+        P.style.display = 'block';
+        if (el.t === 'constr') {
+            P.innerHTML = `<h4>Construção</h4><div class="lin">Nome: <input class="nome" value="${esc(el.nome)}" data-k="nome"></div>
+            <div class="dica">Medidas das paredes – digite a medida da trena (em branco = usa a do desenho):</div>
+            ${qLados(el).map(([a, b, k]) => `<div class="lin">Parede ${k + 1}: <input inputmode="decimal" data-med="${k}" value="${medInf(el, k) ? fmtNum(el.med[k]) : ''}" placeholder="≈ ${fmtNum(qDist(a, b))}"> m</div>`).join('')}
+            <label class="lin dica"><input type="checkbox" data-aj ${c.ajustar ? 'checked' : ''} style="width:auto"> Redesenhar a parede no tamanho digitado (desligado = croqui livre, só muda o número)</label>
+            <div class="lin"><button type="button" class="btn-mini perigo" data-apagar>Apagar construção</button><button type="button" class="btn-mini" data-fechar>Fechar</button></div>`;
+        } else if (el.t === 'ref') {
+            P.innerHTML = `<h4>${el.kind === 'rua' ? 'Rua' : 'Divisa / muro'}</h4><div class="lin">Nome: <input class="nome" value="${esc(el.nome)}" data-k="nome"></div>
+            <div class="lin"><button type="button" class="btn-mini perigo" data-apagar>Apagar</button><button type="button" class="btn-mini" data-fechar>Fechar</button></div>`;
+        } else { const r = elById(c, el.ref);
+            P.innerHTML = `<h4>Amarração ${el.n} – até ${esc(r ? r.nome : '—')}</h4>
+            <div class="lin">Distância (trena): <input inputmode="decimal" data-dist value="${fmtNum(el.d)}"> m</div>
+            <div class="lin"><button type="button" class="btn-mini perigo" data-apagar>Apagar amarração</button><button type="button" class="btn-mini" data-fechar>Fechar</button></div>`; }
+        P.querySelectorAll('[data-k]').forEach(x => x.onchange = () => { snapshot(); el[x.dataset.k] = x.value; salvar(); desenhar(); });
+        P.querySelectorAll('[data-med]').forEach(x => x.onchange = () => gravarMed(el, +x.dataset.med, x.value));
+        P.querySelectorAll('[data-dist]').forEach(x => x.onchange = () => { const d = num(x.value); if (!(d > 0)) return toast('Distância inválida'); snapshot(); el.d = d; salvar(); atualizar(); });
+        P.querySelectorAll('[data-aj]').forEach(x => x.onchange = () => { c.ajustar = x.checked; salvar(); });
+        P.querySelectorAll('[data-fechar]').forEach(x => x.onclick = () => { E.selId = null; atualizar(); });
+        P.querySelectorAll('[data-apagar]').forEach(x => x.onclick = () => { if (!confirm('Apagar este elemento?')) return; snapshot();
+            c.els = c.els.filter(e => e.id !== el.id && e.ref !== el.id && e.constr !== el.id); c.els.filter(e => e.t === 'amarr').forEach((a, k) => a.n = k + 1);
+            E.selId = null; salvar(); atualizar(); });
+    }
+    /* toques: tocar, arrastar, pinça */
+    const ptrs = new Map(); let gesto = null;
+    const pos = e => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+    cv.onpointerdown = e => { cv.setPointerCapture(e.pointerId); const p = pos(e); ptrs.set(e.pointerId, p);
+        if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; gesto = { tipo: 'pinca', d0: qDist(a, b), s0: E.view.s, m0: qMul(qAdd(a, b), .5), ox: E.view.ox, oy: E.view.oy }; return; }
+        const pw = S2W(p); gesto = { tipo: 'tap', p, ox: E.view.ox, oy: E.view.oy, mov: false };
+        if (E.ferr === 'sel') { const id = acerto(pw), el = elById(c, id); if (el && el.t !== 'amarr') { gesto.arrasta = id; gesto.w0 = pw; gesto.base = JSON.stringify(el);
+            gesto.am0 = JSON.stringify(c.els.filter(a => a.t === 'amarr')); } } };
+    cv.onpointermove = e => { if (!ptrs.has(e.pointerId)) return; const p = pos(e); ptrs.set(e.pointerId, p);
+        if (gesto && gesto.tipo === 'pinca' && ptrs.size === 2) { const [a, b] = [...ptrs.values()], m = qMul(qAdd(a, b), .5), s = Math.max(4, Math.min(300, gesto.s0 * qDist(a, b) / gesto.d0));
+            const w = [(gesto.m0[0] - gesto.ox) / gesto.s0, (gesto.m0[1] - gesto.oy) / gesto.s0]; E.view.s = s; E.view.ox = m[0] - w[0] * s; E.view.oy = m[1] - w[1] * s; return desenhar(); }
+        if (!gesto || gesto.tipo !== 'tap') return;
+        const dx = p[0] - gesto.p[0], dy = p[1] - gesto.p[1]; if (Math.hypot(dx, dy) > 8) gesto.mov = true; if (!gesto.mov) return;
+        if (gesto.arrasta) { const el = elById(c, gesto.arrasta), orig = JSON.parse(gesto.base), d = snapG(qSub(S2W(p), gesto.w0));
+            if (!gesto.snap) { snapshot(); gesto.snap = true; }
+            const am0 = JSON.parse(gesto.am0);
+            if (el.t === 'constr') { el.pts = orig.pts.map(q => qAdd(q, d)); c.els.filter(a => a.t === 'amarr' && a.constr === el.id).forEach(a => { const o = am0.find(x => x.id === a.id); a.s = qAdd(o.s, d); a.e = fimAmarr(c, a); }); }
+            if (el.t === 'ref') { el.a = qAdd(orig.a, d); el.b = qAdd(orig.b, d); c.els.filter(a => a.t === 'amarr' && a.ref === el.id).forEach(a => a.e = fimAmarr(c, a)); }
+            return desenhar(); }
+        if (E.ferr === 'sel' || E.ferr === 'amarr' || !E.temp) { E.view.ox = gesto.ox + dx; E.view.oy = gesto.oy + dy; return desenhar(); }
+        if (E.temp) { E.temp.cur = snapG(S2W(p)); desenhar(); } };
+    const fim = e => { ptrs.delete(e.pointerId); if (gesto && gesto.tipo === 'pinca') { if (!ptrs.size) gesto = null; return; } if (!gesto) return;
+        const gs = gesto; gesto = null; if (gs.arrasta && gs.mov) { salvar(); return atualizar(); }
+        if (!gs.mov) toque(S2W(pos(e))); else if (E.temp) { E.temp.cur = null; desenhar(); } };
+    cv.onpointerup = fim; cv.onpointercancel = e => { ptrs.delete(e.pointerId); gesto = null; };
+    cv.onwheel = e => { e.preventDefault(); E.zoom(e.deltaY < 0 ? 1.15 : 1 / 1.15, pos(e)); };
+    E.zoom = (f, centro) => { const r = tela.getBoundingClientRect(); centro = centro || [r.width / 2, r.height / 2]; const w = S2W(centro);
+        E.view.s = Math.max(4, Math.min(300, E.view.s * f)); E.view.ox = centro[0] - w[0] * E.view.s; E.view.oy = centro[1] - w[1] * E.view.s; desenhar(); };
+    E.enquadrar = enquadrar;
+    E.desfazer = () => { if (E.temp) { if (E.temp.pts && E.temp.pts.length > 1) E.temp.pts.pop(); else E.temp = null; return atualizar(); }
+        if (!E.desf.length) return toast('Nada para desfazer'); const s = JSON.parse(E.desf.pop()); c.els = s.els; c.seq = s.seq; E.selId = null; salvar(); atualizar(); };
+    E.grade = () => { const op = [1, 0.5, 2, 5]; c.grade = op[(op.indexOf(c.grade) + 1) % op.length]; salvar(); renderRodape(i); desenhar(); };
+    E.medidas = () => { c.mostrarMed = c.mostrarMed === false; salvar(); renderRodape(i); desenhar(); };
+    E.limpar = () => { if (!confirm('Apagar todo o desenho deste croqui?')) return; snapshot(); c.els = []; c.seq = 1; E.selId = null; E.temp = null; salvar(); atualizar(); };
+    new ResizeObserver(ajustar).observe(tela);
+    ajustar(); if (c.els.length) enquadrar(); atualizar();
+}
+function renderRodape(i) { const c = croquis[i], r = $('cqr_' + i); if (!r) return;
+    r.querySelector('[data-grade]').textContent = 'Grade: ' + fmtNum(c.grade, c.grade % 1 ? 1 : 0) + ' m';
+    r.querySelector('[data-med]').textContent = c.mostrarMed === false ? '📐 Medidas: ocultas' : '📐 Medidas: visíveis'; }
+const ed = i => editores[croquis[i].id];
 function renderVinculos() {
     document.querySelectorAll('select[data-vinc]').forEach(s => { const i = +s.dataset.vinc;
         s.innerHTML = `<option value="">— geral —</option>` + benf.map((b, k) => `<option value="${k}" ${String(croquis[i].vinc) === String(k) ? 'selected' : ''}>${RUR() ? 'Nº' : 'Item'} ${nn(k)}${b.tipo ? ' – ' + esc(b.tipo) : ''}</option>`).join(''); });
@@ -1054,122 +1245,31 @@ function renderCroquis() {
     const area = $('croquiArea');
     if (!v('croqui_ativo')) { area.innerHTML = ''; renderCK(); return; }
     if (!croquis.length) croquis.push(croquiVazio());
-    const inp = (i, k, extra = '', ph = '') => `<input type="text" value="${esc(croquis[i][k])}" placeholder="${ph}" ${extra} oninput="setCroqui(${i},'${k}',this.value)">`;
-    const un = (html, u) => `<span class="com-un">${html}<span class="un">${u}</span></span>`;
-    area.innerHTML = croquis.map((c, i) => { const modo = c._modo || 'medidas'; return `<div class="item">
+    croquis.forEach(migrarCroqui);
+    area.innerHTML = croquis.map((c, i) => `<div class="item">
         <div class="cab">CROQUI ${nn(i)} <span><button type="button" class="btn-mini perigo" onclick="removerCroqui(${i})">Remover</button></span></div>
-        <div class="form-row"><div class="form-group"><label>VINCULADO A:</label><select data-vinc="${i}" onchange="croquis[${i}].vinc=this.value;autoSalvar();desenharBaseDeb(${i})"></select></div></div>
-        <div class="ferr"><button type="button" class="btn-mini ${modo === 'medidas' ? 'on' : ''}" onclick="modoCroqui(${i},'medidas')">📐 Por medidas</button>
-            <button type="button" class="btn-mini ${modo === 'livre' ? 'on' : ''}" onclick="modoCroqui(${i},'livre')">✏️ Desenho livre (por cima)</button></div>
-        <div id="med_${i}" style="${modo === 'medidas' ? '' : 'display:none'}">
-            <div class="form-row">
-                <div class="form-group" style="flex:2 1 220px"><label>RUA / REFERÊNCIA PRINCIPAL:</label>${inp(i, 'rua', 'list="lst_ref"', 'Ex.: Rua das Flores')}</div>
-                <div class="form-group" style="flex:1 1 150px"><label>LADO DA RUA NO DESENHO:</label><select onchange="setCroqui(${i},'ladoRua',this.value)">${[['direita', 'À direita'], ['esquerda', 'À esquerda'], ['acima', 'Acima'], ['abaixo', 'Abaixo']].map(([k, t]) => `<option value="${k}" ${c.ladoRua === k ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
-            </div>
-            <div class="form-row">
-                <div class="form-group"><label>FRENTE DA CONSTRUÇÃO:</label>${un(inp(i, 'larg', 'inputmode="decimal"'), 'm')}</div>
-                <div class="form-group"><label>PROFUNDIDADE DA CONSTRUÇÃO:</label>${un(inp(i, 'comp', 'inputmode="decimal"'), 'm')}</div>
-                <div class="form-group"><label>TESTADA DO LOTE (OPCIONAL):</label>${un(inp(i, 'testada', 'inputmode="decimal"'), 'm')}</div>
-            </div>
-            <span class="dica">O desenho em escala é atualizado sozinho a cada medida digitada.</span>
-        </div>
-        <div class="ferr" id="fer_${i}" style="${modo === 'livre' ? '' : 'display:none'}">${[['lapis', 'Lápis'], ['linha', 'Linha'], ['retangulo', 'Retângulo'], ['texto', 'Texto'], ['amarr', 'Amarração'], ['ref', 'Referência'], ['borracha', 'Borracha']]
-            .map(([k, t]) => `<button type="button" class="btn-mini ${(c._ferr || 'lapis') === k ? 'on' : ''}" onclick="ferrCroqui(${i},'${k}')">${t}</button>`).join('')}
-            <button type="button" class="btn-mini" onclick="desfazerCroqui(${i})">↶ Desfazer</button><button type="button" class="btn-mini" onclick="norteCroqui(${i})">N ↑</button>
-            <button type="button" class="btn-mini perigo" onclick="limparCroqui(${i})">Limpar desenho livre</button></div>
-        <div class="cv-wrap"><canvas id="cvb_${i}" class="cv-base" width="${CVW}" height="${CVH}"></canvas><canvas id="cv_${i}" width="${CVW}" height="${CVH}"></canvas></div>
-        <div class="quadro" style="margin-top:10px"><h4>AMARRAÇÕES <span class="dica">(alinhamentos paralelos: 2 · inclinados: 4 – com 2 amarrações da frente em posições diferentes, a inclinação da rua é calculada)</span></h4>
-            ${(c.amarr || []).map((a, k) => `<div class="form-row" style="align-items:flex-end">
-                <div class="form-group" style="flex:0 0 34px;min-width:34px"><label>Nº</label><b style="color:#c53030;padding:5px 0">${k + 1}</b></div>
-                <div class="form-group" style="flex:1 1 170px"><label>PONTO DE PARTIDA:</label><select onchange="setAmarr(${i},${k},'lado',this.value)">${LADOS.map(([l, t]) => `<option value="${l}" ${a.lado === l ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
-                <div class="form-group" style="flex:0 1 130px;min-width:110px"><label>POSIÇÃO NO LADO:</label>${un(`<input type="text" inputmode="decimal" placeholder="meio" value="${esc(a.pos)}" oninput="setAmarr(${i},${k},'pos',this.value)">`, 'm')}</div>
-                <div class="form-group" style="flex:2 1 170px"><label>REFERÊNCIA:</label><input type="text" list="lst_ref" value="${esc(a.ref)}" oninput="setAmarr(${i},${k},'ref',this.value)"></div>
-                <div class="form-group" style="flex:0 1 130px;min-width:110px"><label>DISTÂNCIA (TRENA):</label>${un(`<input type="text" inputmode="decimal" value="${esc(a.dist)}" oninput="setAmarr(${i},${k},'dist',this.value)">`, 'm')}</div>
-                <button type="button" class="btn-mini perigo" onclick="removerAmarr(${i},${k})" title="Remover amarração">✕</button></div>`).join('')}
-            <span class="dica">Posição no lado: frente/fundos = distância a partir do canto esquerdo (visto da rua); laterais = a partir da frente. Em branco = meio do lado.</span><br>
-            ${(c.amarr || []).length < 4 ? `<button type="button" class="btn-mini" style="margin-top:6px" onclick="addAmarr(${i})">+ Amarração</button>` : ''}
-            <div class="form-row" style="margin-top:8px"><div class="form-group full"><label>OBSERVAÇÃO:</label><input type="text" value="${esc(c.obs)}" oninput="croquis[${i}].obs=this.value;autoSalvar()"></div></div>
-        </div></div>`; }).join('') +
+        <div class="form-row"><div class="form-group"><label>VINCULADO A:</label><select data-vinc="${i}" onchange="croquis[${i}].vinc=this.value;autoSalvar()"></select></div></div>
+        ${c.legado && !c.els.length ? `<div class="quadro"><h4>CROQUI DA VERSÃO ANTERIOR</h4><span class="dica">Este croqui foi feito na versão antiga e continua saindo no PDF. Ao desenhar aqui embaixo, o novo desenho substitui o antigo.</span></div>` : ''}
+        <div class="cq-barra" id="cqb_${i}">${[['ret', '▭ Construção'], ['pol', '⌐ Construção em L'], ['rua', '🛣️ Rua'], ['div', '┄ Divisa / muro'], ['amarr', '📏 Amarração'], ['sel', '✋ Selecionar / mover']]
+            .map(([f, t]) => `<button type="button" class="btn-mini" data-f="${f}" onclick="ed(${i}).setFerr('${f}')">${t}</button>`).join('')}</div>
+        <div class="cq-dica" id="cqd_${i}"></div>
+        <div class="cq-tela"><canvas id="cq_${i}"></canvas>
+            <div class="cq-flut"><button type="button" onclick="ed(${i}).zoom(1.3)" title="Aproximar">+</button><button type="button" onclick="ed(${i}).zoom(1/1.3)" title="Afastar">−</button>
+            <button type="button" onclick="ed(${i}).enquadrar()" title="Enquadrar tudo">⤢</button><button type="button" onclick="ed(${i}).desfazer()" title="Desfazer">↶</button></div></div>
+        <div class="cq-painel" id="cqp_${i}"></div>
+        <div class="ferr" id="cqr_${i}"><button type="button" class="btn-mini" data-grade onclick="ed(${i}).grade()"></button>
+            <button type="button" class="btn-mini" data-med onclick="ed(${i}).medidas()"></button>
+            <button type="button" class="btn-mini perigo" onclick="ed(${i}).limpar()">Limpar desenho</button></div>
+        <span class="dica">Arraste o fundo para mover a tela e use dois dedos para zoom. Para rolar a página, toque fora do quadro.</span>
+        <div class="form-row" style="margin-top:8px"><div class="form-group full"><label>OBSERVAÇÃO:</label><input type="text" value="${esc(c.obs)}" oninput="croquis[${i}].obs=this.value;autoSalvar()"></div></div>
+    </div>`).join('') +
         `<button type="button" class="btn-mini" style="margin-top:10px" onclick="croquis.push(croquiVazio());renderCroquis();autoSalvar()">+ Adicionar croqui (um por construção)</button>`;
     renderVinculos();
-    croquis.forEach((c, i) => { desenharBase(i); ligarCanvas(i); });
+    croquis.forEach((c, i) => { criarEditor(i); renderRodape(i); });
     renderCK();
 }
 let tCK; const renderCKdeb = () => { clearTimeout(tCK); tCK = setTimeout(renderCK, 400); };
-function modoCroqui(i, m) { croquis[i]._modo = m; renderCroquis(); }
-function ferrCroqui(i, f) { croquis[i]._ferr = f; renderCroquis(); }
-function removerCroqui(i) { if (!confirm('Remover este croqui?')) return; histCroqui.delete(croquis[i].id); croquis.splice(i, 1); renderCroquis(); autoSalvar(); }
-function empilhar(i, cv) { const h = histCroqui.get(croquis[i].id) || []; h.push({ img: cv.toDataURL('image/png'), livre: [...(croquis[i].amarrLivre || [])] }); if (h.length > 10) h.shift(); histCroqui.set(croquis[i].id, h); }
-function salvarCroqui(i, cv) { croquis[i].desenho = cv.toDataURL('image/png'); autoSalvar(); renderCKdeb(); }
-function desfazerCroqui(i) { const h = histCroqui.get(croquis[i].id) || [], cv = $('cv_' + i), g = cv.getContext('2d');
-    if (!h.length) return toast('Nada para desfazer');
-    const st = h.pop(), im = new Image(); croquis[i].amarrLivre = st.livre; im.onload = () => { g.clearRect(0, 0, CVW, CVH); g.drawImage(im, 0, 0); salvarCroqui(i, cv); }; im.src = st.img; }
-function limparCroqui(i) { if (!confirm('Apagar o desenho livre deste croqui? (o desenho por medidas é mantido)')) return; const cv = $('cv_' + i); empilhar(i, cv);
-    cv.getContext('2d').clearRect(0, 0, CVW, CVH); croquis[i].desenho = ''; croquis[i].amarrLivre = []; autoSalvar(); renderCKdeb(); }
-function estilo(g, t) {
-    g.lineCap = 'round'; g.lineJoin = 'round'; g.setLineDash([]);
-    if (t === 'borracha') { g.globalCompositeOperation = 'destination-out'; g.lineWidth = 34; }
-    else { g.globalCompositeOperation = 'source-over'; g.strokeStyle = t === 'amarr' ? '#c53030' : t === 'ref' ? '#555' : '#0b2a6b'; g.lineWidth = t === 'ref' ? 7 : 4; }
-}
-function ligarCanvas(i) {
-    const cv = $('cv_' + i), g = cv.getContext('2d'), c = croquis[i];
-    if (c.desenho) { const im = new Image(); im.onload = () => g.drawImage(im, 0, 0); im.src = c.desenho; }
-    if ((c._modo || 'medidas') !== 'livre') { cv.style.pointerEvents = 'none'; return; }
-    let ativo = false, p0 = null, pL = null, snap = null;
-    const pos = e => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) * CVW / r.width, y: (e.clientY - r.top) * CVH / r.height }; };
-    cv.onpointerdown = e => {
-        e.preventDefault(); const p = pos(e), t = c._ferr || 'lapis';
-        empilhar(i, cv);
-        if (t === 'texto') { const s = prompt('Texto do croqui:'); if (s) { g.globalCompositeOperation = 'source-over'; g.fillStyle = '#0b2a6b'; g.font = 'bold 30px Arial'; g.fillText(s, p.x, p.y); salvarCroqui(i, cv); } return; }
-        try { cv.setPointerCapture(e.pointerId); } catch (x) {}
-        ativo = true; p0 = p; pL = p; estilo(g, t);
-        if (t === 'lapis' || t === 'borracha') { g.beginPath(); g.moveTo(p.x, p.y); } else snap = g.getImageData(0, 0, CVW, CVH);
-    };
-    cv.onpointermove = e => {
-        if (!ativo) return; const p = pos(e), t = c._ferr || 'lapis'; pL = p; estilo(g, t);
-        if (t === 'lapis' || t === 'borracha') { g.lineTo(p.x, p.y); g.stroke(); }
-        else { g.putImageData(snap, 0, 0); g.beginPath(); if (t === 'retangulo') g.rect(p0.x, p0.y, p.x - p0.x, p.y - p0.y); else { g.moveTo(p0.x, p0.y); g.lineTo(p.x, p.y); } g.stroke(); }
-    };
-    const fim = () => {
-        if (!ativo) return; ativo = false; snap = null; g.globalCompositeOperation = 'source-over';
-        const t = c._ferr || 'lapis', a = [p0.x, p0.y], b = [pL.x, pL.y], longo = Math.hypot(b[0] - a[0], b[1] - a[1]) > 10;
-        let reRender = false;
-        if (t === 'ref' && longo) { const s = prompt('Nome da referência (ex.: Rua das Flores, Divisa, Muro):'); if (s) caixaRotulo(g, a, b, [s.toUpperCase()], '#555'); }
-        if (t === 'amarr' && longo) {
-            const sug = ([1, 2, 3, 4].find(n => !(c.amarrLivre || []).includes(n))) || 1;
-            const n = parseInt(prompt('Número da amarração (1 a 4):', sug), 10);
-            if (n >= 1 && n <= 4) {
-                while (c.amarr.length < n) c.amarr.push(novaAmarr('livre'));
-                const am = c.amarr[n - 1];
-                if (!am.ref) am.ref = prompt('Referência (até onde foi medida):', '') || '';
-                if (!(num(am.dist) > 0)) am.dist = prompt('Distância medida com trena (m):', '') || '';
-                pontoCv(g, a, '#c53030'); pontoCv(g, b, '#c53030');
-                caixaRotulo(g, a, b, [`AMARRAÇÃO ${n} – ${num(am.dist) > 0 ? fmtNum(num(am.dist)) + ' m' : '?'}`, `até ${(am.ref || '—').toUpperCase()}`], '#c53030');
-                c.amarrLivre = [...new Set([...(c.amarrLivre || []), n])]; reRender = true;
-            }
-        }
-        salvarCroqui(i, cv); if (reRender) renderCroquis();
-    };
-    cv.onpointerup = fim; cv.onpointercancel = fim;
-}
-function norteCroqui(i) { const cv = $('cv_' + i), g = cv.getContext('2d'); empilhar(i, cv);
-    g.globalCompositeOperation = 'source-over'; g.fillStyle = g.strokeStyle = '#0b2a6b'; g.lineWidth = 4;
-    const x = CVW - 70, y = 60; g.beginPath(); g.moveTo(x, y + 70); g.lineTo(x, y); g.stroke();
-    g.beginPath(); g.moveTo(x, y - 6); g.lineTo(x - 14, y + 22); g.lineTo(x + 14, y + 22); g.closePath(); g.fill();
-    g.font = 'bold 32px Arial'; g.textAlign = 'center'; g.fillText('N', x, y + 105); g.textAlign = 'start'; salvarCroqui(i, cv); }
-/* croqui final = grade + desenho por medidas + desenho livre (para PDF e Word) */
-function compoeCroqui(c) {
-    return new Promise(res => {
-        const cv = document.createElement('canvas'); cv.width = CVW; cv.height = CVH; const g = cv.getContext('2d');
-        g.fillStyle = '#fff'; g.fillRect(0, 0, CVW, CVH); g.strokeStyle = '#d9dee7'; g.lineWidth = 1;
-        for (let x = 0; x <= CVW; x += 48) { g.beginPath(); g.moveTo(x + .5, 0); g.lineTo(x + .5, CVH); g.stroke(); }
-        for (let y = 0; y <= CVH; y += 48) { g.beginPath(); g.moveTo(0, y + .5); g.lineTo(CVW, y + .5); g.stroke(); }
-        const camadas = [c.base, c.desenho].filter(Boolean);
-        const prox = () => { if (!camadas.length) return res(cv.toDataURL('image/jpeg', 0.92));
-            const im = new Image(); im.onload = () => { g.drawImage(im, 0, 0); prox(); }; im.onerror = prox; im.src = camadas.shift(); };
-        prox();
-    });
-}
+function removerCroqui(i) { if (!confirm('Remover este croqui?')) return; delete editores[croquis[i].id]; croquis.splice(i, 1); renderCroquis(); autoSalvar(); }
 /* imagem aérea (anexo posterior) */
 async function anexarAerea(inp) {
     const f = inp.files[0]; inp.value = ''; if (!f) return;
@@ -1305,15 +1405,15 @@ async function montarDoc() {
     }
     if (fotos.length) B.push({ t: 'fotos' });
     if (v('croqui_ativo')) for (let i = 0; i < croquis.length; i++) {
-        const c = croquis[i], b = c.vinc !== '' && benf[+c.vinc];
+        const c = migrarCroqui(croquis[i]), b = c.vinc !== '' && benf[+c.vinc];
+        if (!temCroqui(c)) continue;
         B.push({ t: 'pag' }); tit(`Croqui ${nn(i)}` + (b ? ` – ${r ? 'Nº' : 'Item'} ${nn(+c.vinc)}${b.tipo ? ' (' + b.tipo + ')' : ''}` : ''));
         B.push({ t: 'img', src: await compoeCroqui(c), alt: 0.6 });
-        const G = geometriaCroqui(c);
-        if (G) lin([['Frente da construção', fmtNum(G.W) + ' m'], ['Profundidade', fmtNum(G.P) + ' m'], ['Testada do lote', num(c.testada) > 0 ? fmtNum(num(c.testada)) + ' m' : '']]);
-        if ((c.rua || '').trim()) lin([['Rua / referência principal', c.rua]]);
-        if (G && G.rua && G.rua.calc) nota(`ALINHAMENTO INCLINADO: ${fmtNum(Math.abs(G.rua.ang * 180 / Math.PI), 1)}° EM RELAÇÃO À FRENTE DA CONSTRUÇÃO (CALCULADO PELAS AMARRAÇÕES ${G.rua.n1} E ${G.rua.n2})`);
-        const am = (c.amarr || []).map((a, k) => [a, k]).filter(([a]) => a.ref || a.dist);
-        if (am.length) { nota('AMARRAÇÕES'); am.forEach(([a, k]) => lin([[`Amarração ${k + 1}`, `${descLado(a)} até ${a.ref || '—'}`, 2], ['Distância (trena)', a.dist ? a.dist + ' m' : '', 0, 70]])); }
+        const ams = (c.els || []).filter(e => e.t === 'amarr');
+        if (ams.length) { nota('AMARRAÇÕES'); ams.forEach(a => { const ce = elById(c, a.constr), rf = elById(c, a.ref);
+            lin([[`Amarração ${a.n}`, `${ce ? ce.nome : '—'} até ${rf ? rf.nome : '—'}`, 2], ['Distância (trena)', fmtNum(a.d) + ' m', 0, 70]]); }); }
+        (c.els || []).filter(e => e.t === 'ref').forEach(rf => { const inc = inclinacaoRef(c, rf);
+            if (inc) nota(`${(rf.nome || '').toUpperCase()}: ALINHAMENTO INCLINADO ${fmtNum(inc.graus, 1)}° (CALCULADO PELAS AMARRAÇÕES ${inc.n.join(' E ')})`); });
         if (c.obs) caixaT('Observação', c.obs, 1);
     }
     if (atual?.aerea) { B.push({ t: 'pag' }); tit('Imagem Aérea'); B.push({ t: 'img', src: atual.aerea.src, alt: 0.8 }); if (atual.aerea.leg) caixaT('Legenda', atual.aerea.leg, 1); }
@@ -1621,8 +1721,10 @@ async function exportEXCEL() {
     if (m === 'rural') linhas.push(['Dados do Imóvel', 'Distância total (km)', fmtNum(totalKm(), 1)]);
     if (v('benf_ativa')) benf.forEach((b, i) => linhas.push(['Benfeitorias', 'Nº ' + nn(i), [b.tipo, caracteristicas(b), b.desc, b.fotosRef && 'Fotos ' + b.fotosRef].filter(Boolean).join(' | ')]));
     if (v('ck_ativo')) listaCK().forEach(([id, txt]) => linhas.push(['Check list', txt, valorCK(id)]));
-    if (v('croqui_ativo')) croquis.forEach((c, i) => linhas.push(['Croqui', 'Croqui ' + nn(i), [c.rua && 'Rua: ' + c.rua, c.larg && 'Frente ' + c.larg + ' m', c.comp && 'Profundidade ' + c.comp + ' m', c.testada && 'Testada ' + c.testada + ' m',
-        ...(c.amarr || []).map((a, k) => (a.ref || a.dist) ? `Amarração ${k + 1}: ${descLado(a)} até ${a.ref || '—'} ${a.dist ? a.dist + ' m' : ''}`.trim() : '').filter(Boolean), c.obs].filter(Boolean).join(' | ')]));
+    if (v('croqui_ativo')) croquis.forEach((c, i) => linhas.push(['Croqui', 'Croqui ' + nn(i), [
+        ...(c.els || []).filter(e => e.t === 'constr').map(el => `${el.nome}: ${qLados(el).map(([, , k]) => fmtNum(medReal(el, k)) + (medInf(el, k) ? '' : '≈')).join(' × ')} m`),
+        ...(c.els || []).filter(e => e.t === 'amarr').map(a => { const ce = elById(c, a.constr), rf = elById(c, a.ref); return `Amarração ${a.n}: ${ce ? ce.nome : '—'} até ${rf ? rf.nome : '—'} ${fmtNum(a.d)} m`; }),
+        c.obs].filter(Boolean).join(' | ')]));
     fotos.forEach((f, i) => linhas.push(['Registro Fotográfico', 'Foto ' + nn(i), [f.leg, f.lat != null ? `Lat ${fmtCoord(f.lat)} Long ${fmtCoord(f.lon)} (${f.origem === 'foto' ? 'da foto' : 'da ficha'})` : ''].filter(Boolean).join(' | ')]));
     baixar(new Blob(['\ufeff' + linhas.map(l => l.map(csvCel).join(';')).join('\r\n')], { type: 'text/csv;charset=utf-8' }), nomeArquivo('csv'));
 }
@@ -1637,8 +1739,8 @@ async function exportProjetoCSV() {
     const ckv = (f, id) => {
         const cr = f.croquis || [];
         if (!f.campos.ck_ativo) return 'não incluído';
-        if (id === 'croqui') return !f.campos.croqui_ativo ? 'N/A' : cr.some(c => c.base || c.desenho) ? 'Sim' : 'Não';
-        if (id === 'amarracao') return !f.campos.croqui_ativo ? 'N/A' : cr.some(c => nAmarrDesenho(c) >= 2) ? 'Sim' : 'Não';
+        if (id === 'croqui') return !f.campos.croqui_ativo ? 'N/A' : cr.some(temCroqui) ? 'Sim' : 'Não';
+        if (id === 'amarracao') return !f.campos.croqui_ativo ? 'N/A' : cr.some(c => nAmarr(c) >= 2) ? 'Sim' : 'Não';
         return (f.ck || {})[id] || '';
     };
     const linhas = [cab, ...todas.map(f => [f.campos.modelo === 'rural' ? 'Rural' : 'Urbana', ...cs.map(c => valorCampo(c, f.campos || {}, (f.fotos || []).length)),

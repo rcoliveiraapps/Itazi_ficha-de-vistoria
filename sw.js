@@ -1,5 +1,5 @@
-// Funcionamento offline. A CADA atualização publicada, troque "ficha-9" por "ficha-10" (e assim por diante).
-const CACHE = "ficha-9";
+// Funcionamento offline. A CADA atualização publicada, troque "ficha-10" por "ficha-11" (e assim por diante).
+const CACHE = "ficha-10";
 const ARQ = ["./", "./index.html", "./app-extras.js", "./manifest.json", "./catalogo.json", "./docx.js",
              "./icons/logo-itazi.png", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/apple-touch-icon.png"];
 self.addEventListener("install", e => {
