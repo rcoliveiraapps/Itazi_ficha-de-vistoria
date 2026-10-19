@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ficha de Vistoria - Áreas Urbanas</title>
+    <title>Ficha de Vistoria</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#344c59">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -12,141 +12,132 @@
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <link rel="icon" href="icons/icon-192.png">
     <style>
-        :root { --primary-color: #1a365d; --border-color: #2d3748; --bg-light: #f7fafc; }
+        :root { --primary-color: #1a365d; --border-color: #2d3748; }
         * { box-sizing: border-box; }
         body { font-family: Arial, sans-serif; font-size: 11pt; color: #000; background-color: #e2e8f0; margin: 0; padding: 20px; }
+        body:not(.rural) .so-rur, body.rural .so-urb { display: none !important; }
         .container { max-width: 900px; background: #fff; margin: 0 auto; padding: 30px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .header-title { border: 2px solid var(--border-color); padding: 10px; text-align: center; font-weight: bold; font-size: 14pt; background-color: #edf2f7; margin-bottom: 20px; }
-        .logo-tela { text-align: left; margin-bottom: 8px; }
+        .header-title { border: 2px solid var(--border-color); padding: 10px; text-align: center; font-weight: bold; font-size: 14pt; background-color: #edf2f7; margin-bottom: 14px; }
         .logo-tela img { max-height: 48px; }
-
+        .modelo { display: flex; gap: 8px; margin: 8px 0 12px; }
+        .modelo button { flex: 1; padding: 12px; font: bold 12pt Arial; border: 2px solid #cbd5e0; background: #fff; border-radius: 8px; cursor: pointer; }
+        .modelo button.on { border-color: var(--primary-color); background: var(--primary-color); color: #fff; }
         .fichas-bar { background: #edf2f7; border: 1px solid #cbd5e0; border-radius: 5px; padding: 10px 12px; margin-bottom: 14px; }
         .fichas-bar .linha { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
         .fichas-bar select { flex: 1; min-width: 220px; border: 1px solid #a0aec0; border-radius: 4px; padding: 7px; background: #fff; font-size: 10pt; }
         .fichas-bar .info { font-size: 8.5pt; color: #4a5568; margin-top: 6px; }
         .btn-mini { border: 1px solid #a0aec0; background: #fff; color: var(--primary-color); border-radius: 4px; padding: 6px 10px; font-size: 9pt; font-weight: bold; cursor: pointer; font-family: Arial; }
-        .btn-mini:hover { background: #ebf8ff; }
-        .btn-mini.perigo { color: #c53030; }
-
+        .btn-mini:hover { background: #ebf8ff; } .btn-mini.perigo { color: #c53030; } .btn-mini.on { background: var(--primary-color); color: #fff; }
         fieldset { border: 1px solid var(--border-color); margin-bottom: 20px; padding: 15px; border-radius: 4px; }
         legend { font-weight: bold; background-color: var(--primary-color); color: #fff; padding: 5px 15px; font-size: 10pt; text-transform: uppercase; border-radius: 3px; }
         .form-row { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 12px; }
-        .form-group { flex: 1; min-width: 160px; display: flex; flex-direction: column; position: relative; }
-        .form-group.full { flex: 100%; }
-        .form-group.uf { flex: 0 0 80px; min-width: 80px; }
-        .form-group.cep { flex: 0 0 170px; min-width: 150px; }
-        .form-group.pais { flex: 0 0 130px; min-width: 120px; }
+        .form-group { flex: 1; min-width: 150px; display: flex; flex-direction: column; position: relative; }
+        .form-group.full { flex: 100%; } .form-group.uf { flex: 0 0 80px; min-width: 80px; }
+        .form-group.cep { flex: 0 0 170px; min-width: 150px; } .form-group.pais { flex: 0 0 130px; min-width: 120px; }
         label { font-size: 9pt; font-weight: bold; margin-bottom: 3px; color: #2d3748; }
         .dica { font-size: 8pt; color: #718096; margin-top: 2px; font-weight: normal; }
         .dica.ok { color: #2f855a; } .dica.erro { color: #c53030; }
-        input[type="text"], input[type="date"], input[type="email"], input[type="tel"], input[type="number"], select, textarea {
-            border: none; border-bottom: 1px solid #718096; padding: 5px 2px; font-size: 10pt; font-family: Arial, sans-serif; outline: none; background: transparent; width: 100%;
-        }
+        input[type="text"], input[type="date"], input[type="email"], input[type="tel"], select, textarea {
+            border: none; border-bottom: 1px solid #718096; padding: 5px 2px; font-size: 10pt; font-family: Arial, sans-serif; outline: none; background: transparent; width: 100%; }
         input:focus, textarea:focus, select:focus { border-bottom-color: var(--primary-color); background-color: #fffaf0; }
         input.invalido { border-bottom: 2px solid #c53030; background: #fff5f5; }
         input.faltando, select.faltando { border-bottom: 2px solid #dd6b20; background: #fffaf0; }
         textarea { resize: vertical; min-height: 60px; border: 1px solid #718096; padding: 8px; }
         .na-btn { position: absolute; right: 0; top: -2px; border: 1px solid #cbd5e0; background: #f7fafc; color: #4a5568; font-size: 7.5pt; padding: 1px 5px; border-radius: 3px; cursor: pointer; font-family: Arial; }
         .na-btn.on { background: #4a5568; color: #fff; border-color: #4a5568; }
-        /* unidade fixa dentro do campo (não some ao digitar) */
-        .com-un { position: relative; display: block; }
-        .com-un input { padding-right: 30px; }
+        .com-un { position: relative; display: block; } .com-un input { padding-right: 34px; }
         .com-un .un { position: absolute; right: 4px; bottom: 6px; color: #4a5568; font-size: 9.5pt; font-weight: bold; pointer-events: none; }
-        .nota-benfeitorias { font-size: 9pt; font-weight: bold; margin-top: 4px; }
-        .gps-box { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-        .gps-box input { flex: 1; min-width: 220px; }
-
+        .nota { font-size: 9pt; font-weight: bold; margin-top: 4px; }
+        .quadro { border: 1px solid #cbd5e0; border-radius: 4px; padding: 10px; background: #fcfdff; margin-bottom: 12px; }
+        .quadro h4 { margin: 0 0 8px; font-size: 9pt; color: var(--primary-color); }
+        .gps-box { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; } .gps-box input { flex: 1; min-width: 220px; }
         .checkbox-grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(3, auto); grid-auto-flow: column; gap: 10px; margin-top: 5px; }
         .checkbox-item { display: flex; align-items: center; font-size: 9.5pt; font-weight: normal; cursor: pointer; }
         .checkbox-item input[type="checkbox"] { margin-right: 8px; transform: scale(1.15); }
         .checkbox-item input[type="text"] { padding: 2px; font-size: 9.5pt; }
-
-        .benf-toggle { display: flex; align-items: center; gap: 8px; font-size: 10pt; font-weight: bold; color: var(--primary-color); background: #ebf8ff; border: 1px solid #bee3f8; border-radius: 4px; padding: 10px; cursor: pointer; }
-        .benf-toggle input { transform: scale(1.3); }
-        .benf-item { border: 1px solid #cbd5e0; border-radius: 4px; padding: 10px; margin-top: 10px; background: #fcfdff; }
-        .benf-item .cab { display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 9.5pt; color: var(--primary-color); margin-bottom: 6px; }
-
+        .toggle { display: flex; align-items: center; gap: 8px; font-size: 10pt; font-weight: bold; color: var(--primary-color); background: #ebf8ff; border: 1px solid #bee3f8; border-radius: 4px; padding: 10px; cursor: pointer; }
+        .toggle input { transform: scale(1.3); }
+        .item { border: 1px solid #cbd5e0; border-radius: 4px; padding: 10px; margin-top: 10px; background: #fcfdff; }
+        .item .cab { display: flex; justify-content: space-between; align-items: center; gap: 6px; font-weight: bold; font-size: 9.5pt; color: var(--primary-color); margin-bottom: 6px; flex-wrap: wrap; }
+        .ck { display: grid; grid-template-columns: 1fr auto; gap: 6px 10px; align-items: center; font-size: 9.5pt; }
+        .ck > div { padding: 4px 0; border-bottom: 1px dashed #e2e8f0; }
+        .seg { display: inline-flex; border: 1px solid #a0aec0; border-radius: 5px; overflow: hidden; }
+        .seg button { border: none; border-right: 1px solid #cbd5e0; background: #fff; padding: 5px 9px; font: 9pt Arial; cursor: pointer; }
+        .seg button:last-child { border-right: none; }
+        .seg button.on.s { background: #c6f6d5; font-weight: bold; } .seg button.on.n { background: #fed7d7; font-weight: bold; } .seg button.on.a { background: #e2e8f0; font-weight: bold; }
+        .auto { font-size: 8.5pt; color: #2f855a; font-weight: bold; }
+        .cv-wrap { position: relative; border: 1px solid #718096; background-color: #fff;
+            background-image: linear-gradient(#e2e8f0 1px, transparent 1px), linear-gradient(90deg, #e2e8f0 1px, transparent 1px); background-size: 4% 5.333%; }
+        .cv-wrap canvas { display: block; width: 100%; height: auto; touch-action: none; cursor: crosshair; }
+        .ferr { display: flex; gap: 5px; flex-wrap: wrap; margin: 6px 0; }
         .actions { margin-top: 30px; text-align: center; background: #edf2f7; padding: 15px; border-radius: 5px; }
         .actions h3 { margin: 0 0 8px; }
-        .btn { background-color: var(--primary-color); color: white; border: none; padding: 10px 20px; margin: 5px; font-size: 10pt; font-weight: bold; cursor: pointer; border-radius: 4px; transition: background 0.2s; font-family: Arial; }
-        .btn:hover { background-color: #2b6cb0; }
-        .btn-excel { background-color: #276749; } .btn-excel:hover { background-color: #2f855a; }
-        .btn-doc { background-color: #2b6cb0; } .btn-doc:hover { background-color: #3182ce; }
-        .btn-pdf { background-color: #9b2c2c; } .btn-pdf:hover { background-color: #c53030; }
-        .btn-share { background-color: #6b46c1; } .btn-share:hover { background-color: #805ad5; }
-        .btn-sec { background-color: #718096; } .btn-sec:hover { background-color: #4a5568; }
+        .btn { background-color: var(--primary-color); color: white; border: none; padding: 10px 20px; margin: 5px; font-size: 10pt; font-weight: bold; cursor: pointer; border-radius: 4px; font-family: Arial; }
+        .btn:hover { background-color: #2b6cb0; } .btn-excel { background-color: #276749; } .btn-doc { background-color: #2b6cb0; }
+        .btn-pdf { background-color: #9b2c2c; } .btn-share { background-color: #6b46c1; } .btn-sec { background-color: #718096; }
         .btn:disabled { opacity: .6; cursor: wait; }
-
-        .photo-section { margin-top: 20px; }
         .foto-botoes { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
         .btn-foto { flex: 1; min-width: 200px; border: none; border-radius: 6px; padding: 16px 10px; font: bold 12pt Arial, sans-serif; color: #fff; cursor: pointer; }
         .btn-foto.camera { background: #2f855a; } .btn-foto.galeria { background: #2b6cb0; }
-        .btn-foto:active { transform: scale(.98); }
         .photo-upload-box { border: 2px dashed #a0aec0; padding: 10px; text-align: center; background: #f7fafc; border-radius: 4px; margin-bottom: 15px; }
         .photo-upload-box.arrastando { background: #ebf8ff; border-color: #2b6cb0; }
         .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
         .photo-card { border: 1px solid #cbd5e0; background: #fff; padding: 10px; border-radius: 4px; text-align: center; }
         .photo-card .num { font-size: 9pt; font-weight: bold; text-align: left; margin-bottom: 4px; }
+        .photo-card .orig { font-size: 8pt; color: #2f855a; text-align: left; margin-bottom: 4px; min-height: 10px; }
         .photo-card img { max-width: 100%; height: 180px; object-fit: cover; border-radius: 3px; margin-bottom: 8px; }
         .photo-card input { font-size: 9pt; width: 100%; border: 1px solid #cbd5e0; padding: 4px; }
         .photo-card .ctrl { display: flex; gap: 4px; margin-top: 6px; }
         .photo-card .ctrl button { flex: 1; border: 1px solid #cbd5e0; background: #f7fafc; cursor: pointer; padding: 4px; font-size: 9pt; border-radius: 3px; }
         .photo-card .ctrl button.rm { color: #c53030; }
-
         .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #1a202c; color: #fff; padding: 10px 18px; border-radius: 6px; font-size: 10pt; opacity: 0; transition: .3s; pointer-events: none; z-index: 50; max-width: 90%; text-align: center; }
         .toast.show { opacity: .94; }
-        .aviso-salvo { font-size: 8.5pt; color: #4a5568; }
         #modalAviso { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: none; align-items: center; justify-content: center; z-index: 98; padding: 14px; }
         #modalAviso > div { background: #fff; border-radius: 10px; max-width: 440px; width: 100%; padding: 20px; font: 11pt Arial, sans-serif; line-height: 1.5; }
         #modalAviso h3 { margin: 0 0 10px; color: #1a365d; } #modalAviso ol { padding-left: 20px; margin: 0 0 14px; }
-
         @media (max-width: 640px) {
-            body { padding: 6px; }
-            .container { padding: 14px; }
+            body { padding: 6px; } .container { padding: 14px; }
             .checkbox-grid { grid-template-columns: 1fr 1fr; grid-template-rows: none; grid-auto-flow: row; }
-            .btn { width: calc(100% - 10px); }
-            .form-group.cep, .form-group.pais { flex: 1 1 140px; }
-        }
+            .btn { width: calc(100% - 10px); } .form-group.cep, .form-group.pais { flex: 1 1 140px; }
+            .ck { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 <div class="container" id="form-container">
     <div class="logo-tela" id="logoTela"></div>
-    <div class="header-title">FICHA DE VISTORIA – ÁREAS URBANAS</div>
+    <div class="modelo"><button type="button" id="bUrb" onclick="trocarModelo('urbana')">🏙️ URBANA</button><button type="button" id="bRur" onclick="trocarModelo('rural')">🌾 RURAL</button></div>
+    <div class="header-title" id="tituloFicha">FICHA DE VISTORIA – ÁREAS URBANAS</div>
 
     <div class="fichas-bar">
         <div class="linha">
             <select id="selFicha" onchange="trocarFicha(this.value)"></select>
-            <button type="button" class="btn-mini" onclick="novaFichaMesmoProjeto()" title="Mantém projeto, vistoriador e data; numera a referência cadastral">+ Mesmo projeto</button>
+            <button type="button" class="btn-mini" onclick="novaFichaMesmoProjeto()" title="Mantém projeto, modelo, vistoriador e data; numera a referência cadastral">+ Mesmo projeto</button>
             <button type="button" class="btn-mini" onclick="novaFicha()">+ Ficha em branco</button>
             <button type="button" class="btn-mini" onclick="duplicarFicha()">Duplicar</button>
             <button type="button" class="btn-mini perigo" onclick="excluirFicha()">Excluir</button>
         </div>
-        <div class="info"><span id="infoFichas"></span> <span class="aviso-salvo" id="avisoSalvo"></span></div>
+        <div class="info"><span id="infoFichas"></span> <span id="avisoSalvo"></span></div>
     </div>
 
     <form id="vistoriaForm" autocomplete="off" onsubmit="return false">
+        <input type="hidden" name="modelo" value="urbana" data-rot="MODELO">
         <fieldset>
             <legend>Informações Gerais</legend>
-            <div class="form-row">
-                <div class="form-group full"><label>NOME DO PROJETO:</label><input type="text" name="nome_projeto"></div>
-            </div>
+            <div class="form-row"><div class="form-group full"><label>NOME DO PROJETO:</label><input type="text" name="nome_projeto"></div></div>
             <div class="form-row">
                 <div class="form-group"><label>REFERÊNCIA CADASTRAL:</label><input type="text" name="referencia_cadastral"></div>
                 <div class="form-group"><label>DATA:</label><input type="date" name="data_vistoria"></div>
             </div>
-            <div class="form-row">
-                <div class="form-group full"><label>NOME DO VISTORIADOR:</label><input type="text" name="nome_vistoriador"></div>
-            </div>
+            <div class="form-row"><div class="form-group full"><label>NOME DO VISTORIADOR:</label><input type="text" name="nome_vistoriador"></div></div>
         </fieldset>
+
         <fieldset>
             <legend>Dados do Imóvel</legend>
+            <div class="form-row so-rur"><div class="form-group full"><label>NOME DA FAZENDA / SÍTIO / CHÁCARA:</label><input type="text" name="nome_fazenda"></div></div>
             <div class="form-row">
-                <div class="form-group cep">
-                    <label>CEP:</label><input type="text" name="cep_imovel" data-mask="cep" data-cep="imovel" inputmode="numeric" placeholder="00000-000">
-                    <span class="dica" id="cepInfo_imovel">Preenche o endereço automaticamente</span>
-                </div>
-                <div class="form-group" style="flex: 3;"><label>ENDEREÇO DO IMÓVEL:</label><input type="text" name="endereco_imovel" placeholder="Rua / avenida / rodovia, número"></div>
+                <div class="form-group cep"><label>CEP:</label><input type="text" name="cep_imovel" data-mask="cep" data-cep="imovel" inputmode="numeric" placeholder="00000-000">
+                    <span class="dica" id="cepInfo_imovel">Preenche o endereço automaticamente</span></div>
+                <div class="form-group" style="flex:3"><label><span class="so-urb">ENDEREÇO DO IMÓVEL:</span><span class="so-rur">ENDEREÇO / LOCALIZAÇÃO DO IMÓVEL:</span></label><input type="text" name="endereco_imovel" placeholder="Rua / avenida / rodovia, número"></div>
             </div>
             <div class="form-row">
                 <div class="form-group"><label>BAIRRO:</label><input type="text" name="bairro_imovel"></div>
@@ -157,40 +148,71 @@
             <input type="hidden" name="ibge_imovel" data-rot="CÓDIGO IBGE DO MUNICÍPIO">
             <div class="form-row">
                 <div class="form-group full">
-                    <label>COORDENADAS (LAT/LONG):</label>
-                    <div class="gps-box">
-                        <input type="text" name="coordenadas" placeholder="Toque em “Capturar posição” no local do imóvel">
-                        <button type="button" class="btn-mini" onclick="capturarGPS()">📍 Capturar posição</button>
+                    <label><span class="so-urb">COORDENADAS (LAT/LONG):</span><span class="so-rur">COORDENADAS UTM (SIRGAS 2000):</span></label>
+                    <div class="gps-box"><input type="text" name="coordenadas" placeholder="Toque em “Capturar posição” no local do imóvel">
+                        <button type="button" class="btn-mini" onclick="capturarGPS()">📍 Capturar posição</button></div>
+                    <span class="dica">Precisão: Ótima até 5 m · Boa 5–15 m · Ruim 15–30 m · Péssima acima de 30 m.</span>
+                </div>
+            </div>
+            <div class="so-urb">
+                <div class="form-row">
+                    <div class="form-group"><label>ÁREA DO TERRENO:</label><span class="com-un"><input type="text" name="area_terreno" data-un="m²" inputmode="decimal"><span class="un">m²</span></span></div>
+                    <div class="form-group"><label>TESTADA:</label><span class="com-un"><input type="text" name="testada" data-un="m" inputmode="decimal"><span class="un">m</span></span></div>
+                    <div class="form-group"><label>LOTE:</label><input type="text" name="lote"></div>
+                    <div class="form-group"><label>QUADRA:</label><input type="text" name="quadra"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>TOPOGRAFIA:</label><input type="text" name="topografia" list="lst_topografia"></div>
+                    <div class="form-group"><label>CONSISTÊNCIA DO SOLO:</label><input type="text" name="consistencia_solo" list="lst_solo"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>CÓRREGO/RIO/RIBEIRÃO:</label><input type="text" name="corrego" list="lst_simnao"></div>
+                    <div class="form-group"><label>FAIXA DE SERVIDÃO:</label><input type="text" name="faixa_servidao" list="lst_simnao"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>MATRÍCULA/TRANSCRIÇÃO:</label><input type="text" name="matricula"></div>
+                    <div class="form-group"><label>RELAÇÃO DE FOTOS:</label><input type="text" name="relacao_fotos"><span class="dica">Em branco = preenchido com as fotos anexadas.</span></div>
+                </div>
+                <div class="form-row"><div class="form-group full"><label>UTILIZAÇÃO DO IMÓVEL:</label><input type="text" name="utilizacao_imovel" list="lst_uso"></div></div>
+            </div>
+            <div class="so-rur">
+                <div class="form-row">
+                    <div class="form-group"><label>ÁREA DECLARADA PELO PROPRIETÁRIO:</label><span class="com-un"><input type="text" name="area_declarada" data-un="ha" inputmode="decimal"><span class="un">ha</span></span><span class="dica" id="haApoio"></span></div>
+                    <div class="form-group"><label>MATRÍCULA / TRANSCRIÇÃO:</label><input type="text" name="matricula_rur"></div>
+                </div>
+                <div class="form-row"><div class="form-group full"><label>FAIXA DE SERVIDÃO EXISTENTE NO IMÓVEL:</label><input type="text" name="faixa_servidao_rur"></div></div>
+                <div class="form-row"><div class="form-group full"><label>VIAS DE ACESSO ATÉ O IMÓVEL:</label><input type="text" name="vias_acesso"></div></div>
+                <div class="quadro"><h4>DISTÂNCIA PERCORRIDA ATÉ O CENTRO URBANO MAIS PRÓXIMO</h4>
+                    <div class="form-row">
+                        <div class="form-group"><label>ESTRADA DE ASFALTO:</label><span class="com-un"><input type="text" name="dist_asfalto" data-un="km" inputmode="decimal"><span class="un">km</span></span></div>
+                        <div class="form-group"><label>ESTRADA DE TERRA:</label><span class="com-un"><input type="text" name="dist_terra" data-un="km" inputmode="decimal"><span class="un">km</span></span></div>
                     </div>
-                    <span class="dica">Precisão: Ótima até 5 m · Boa 5–15 m · Ruim 15–30 m · Péssima acima de 30 m. As coordenadas também entram na marca das fotos.</span>
+                    <div class="form-row">
+                        <div class="form-group"><label>CAMINHO OU SERVIDÃO:</label><span class="com-un"><input type="text" name="dist_servidao" data-un="km" inputmode="decimal"><span class="un">km</span></span></div>
+                        <div class="form-group"><label>CÓRREGOS SEM PONTE:</label><span class="com-un"><input type="text" name="dist_corregos" data-un="km" inputmode="decimal"><span class="un">km</span></span></div>
+                    </div>
+                    <b style="font-size:9.5pt">TOTAL: <span id="distTotal">0,0</span> km</b> <span class="dica">(calculado)</span>
+                </div>
+                <div class="form-row"><div class="form-group full"><label>ATIVIDADE PRINCIPAL:</label><input type="text" name="atividade_principal"></div></div>
+                <div class="form-row"><div class="form-group full"><label>RECURSOS HÍDRICOS (RIOS, CÓRREGOS):</label><input type="text" name="recursos_hidricos"></div></div>
+                <div class="form-row">
+                    <div class="form-group"><label>TOPOGRAFIA:</label><input type="text" name="topografia_rur" list="lst_topografia"></div>
+                    <div class="form-group"><label>RELAÇÃO DE FOTOS:</label><input type="text" name="relacao_fotos_rur"><span class="dica">Em branco = preenchido com as fotos anexadas.</span></div>
+                </div>
+                <div class="quadro"><h4>DOCUMENTOS DO IMÓVEL RURAL</h4>
+                    <div class="form-row">
+                        <div class="form-group"><label>INCRA (CÓDIGO DO IMÓVEL):</label><input type="text" name="incra"></div>
+                        <div class="form-group"><label>CCIR:</label><input type="text" name="ccir"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="flex:2"><label>CAR:</label><input type="text" name="car" placeholder="UF-0000000-XXXX…"></div>
+                        <div class="form-group"><label>RESERVA LEGAL:</label><span class="com-un"><input type="text" name="reserva_legal" data-un="ha" inputmode="decimal"><span class="un">ha</span></span></div>
+                    </div>
                 </div>
             </div>
-            <div class="form-row">
-                <div class="form-group"><label>ÁREA DO TERRENO:</label><span class="com-un"><input type="text" name="area_terreno" data-un="m²" inputmode="decimal"><span class="un">m²</span></span></div>
-                <div class="form-group"><label>TESTADA:</label><span class="com-un"><input type="text" name="testada" data-un="m" inputmode="decimal"><span class="un">m</span></span></div>
-                <div class="form-group"><label>LOTE:</label><input type="text" name="lote"></div>
-                <div class="form-group"><label>QUADRA:</label><input type="text" name="quadra"></div>
-            </div>
-            <div class="form-row">
-                <div class="form-group"><label>TOPOGRAFIA:</label><input type="text" name="topografia" list="lst_topografia"></div>
-                <div class="form-group"><label>CONSISTÊNCIA DO SOLO:</label><input type="text" name="consistencia_solo" list="lst_solo"></div>
-            </div>
-            <div class="form-row">
-                <div class="form-group"><label>CÓRREGO/RIO/RIBEIRÃO:</label><input type="text" name="corrego" list="lst_simnao"></div>
-                <div class="form-group"><label>FAIXA DE SERVIDÃO:</label><input type="text" name="faixa_servidao" list="lst_simnao"></div>
-            </div>
-            <div class="form-row">
-                <div class="form-group"><label>MATRÍCULA/TRANSCRIÇÃO:</label><input type="text" name="matricula"></div>
-                <div class="form-group">
-                    <label>RELAÇÃO DE FOTOS:</label><input type="text" name="relacao_fotos">
-                    <span class="dica">Em branco = preenchido automaticamente com as fotos anexadas.</span>
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group full"><label>UTILIZAÇÃO DO IMÓVEL:</label><input type="text" name="utilizacao_imovel" list="lst_uso"></div>
-            </div>
-            <div class="nota-benfeitorias">FAVOR DESCREVER AS BENFEITORIAS ATINGIDAS NA SEGUNDA FOLHA (FICHA DE BENFEITORIAS)</div>
+            <div class="nota">FAVOR DESCREVER AS BENFEITORIAS ATINGIDAS NA SEGUNDA FOLHA (FICHA DE BENFEITORIAS)</div>
         </fieldset>
+
         <fieldset>
             <legend>Dados Cadastrais do Local</legend>
             <div class="checkbox-grid">
@@ -225,12 +247,13 @@
                 <label class="checkbox-item"><input type="checkbox" name="doc_outro"> <input type="text" name="doc_outro_txt" placeholder="Outro"></label>
             </div>
         </fieldset>
+
         <fieldset>
-            <legend>Dados do Proprietário</legend>
-            <div class="form-row"><div class="form-group full"><label>NOME DO PROPRIETÁRIO:</label><input type="text" name="nome_proprietario"></div></div>
+            <legend><span class="so-urb">Dados dos Interessados</span><span class="so-rur">Dados do Proprietário</span></legend>
+            <div class="form-row"><div class="form-group full"><label><span class="so-urb">NOME:</span><span class="so-rur">NOME DO PROPRIETÁRIO:</span></label><input type="text" name="nome_proprietario"></div></div>
             <div class="form-row">
                 <div class="form-group"><label>RG:</label><input type="text" name="rg_proprietario"></div>
-                <div class="form-group"><label>CPF/CNPJ:</label><input type="text" name="cpf_proprietario" data-mask="doc" inputmode="numeric"></div>
+                <div class="form-group"><label>CPF/CNPJ:</label><input type="text" name="cpf_proprietario" data-mask="doc"></div>
                 <div class="form-group"><label>NACIONALIDADE:</label><input type="text" name="nacionalidade_proprietario" list="lst_nac"></div>
             </div>
             <div class="form-row">
@@ -238,13 +261,11 @@
                 <div class="form-group"><label>ESTADO CIVIL:</label><input type="text" name="estado_civil_proprietario" list="lst_civil"></div>
             </div>
             <div class="form-row"><div class="form-group full"><label>VÍNCULO COM IMÓVEL:</label><input type="text" name="vinculo_imovel" list="lst_vinculo"></div></div>
-            <label class="checkbox-item dica" style="margin:0 0 8px"><input type="checkbox" id="mesmoEndereco"> Endereço do proprietário é o mesmo do imóvel</label>
+            <label class="checkbox-item dica" style="margin:0 0 8px"><input type="checkbox" id="mesmoEndereco"> Endereço igual ao do imóvel</label>
             <div class="form-row">
-                <div class="form-group cep">
-                    <label>CEP:</label><input type="text" name="cep_proprietario" data-mask="cep" data-cep="proprietario" inputmode="numeric" placeholder="00000-000">
-                    <span class="dica" id="cepInfo_proprietario">Preenche o endereço automaticamente</span>
-                </div>
-                <div class="form-group" style="flex: 3;"><label>ENDEREÇO DO PROPRIETÁRIO:</label><input type="text" name="endereco_proprietario" placeholder="Rua / avenida, número"></div>
+                <div class="form-group cep"><label>CEP:</label><input type="text" name="cep_proprietario" data-mask="cep" data-cep="proprietario" inputmode="numeric" placeholder="00000-000">
+                    <span class="dica" id="cepInfo_proprietario">Preenche o endereço automaticamente</span></div>
+                <div class="form-group" style="flex:3"><label>ENDEREÇO:</label><input type="text" name="endereco_proprietario" placeholder="Rua / avenida, número"></div>
             </div>
             <div class="form-row">
                 <div class="form-group"><label>BAIRRO:</label><input type="text" name="bairro_proprietario"></div>
@@ -252,53 +273,81 @@
                 <div class="form-group uf"><label>ESTADO:</label><select name="estado_proprietario" class="sel-uf"></select></div>
                 <div class="form-group pais"><label>PAÍS:</label><input type="text" name="pais_proprietario" value="Brasil"></div>
             </div>
-            <input type="hidden" name="ibge_proprietario" data-rot="CÓDIGO IBGE DO MUNICÍPIO (PROPRIETÁRIO)">
-            <hr style="border: 0; border-top: 1px dashed #cbd5e0; margin: 15px 0;">
+            <input type="hidden" name="ibge_proprietario" data-rot="CÓDIGO IBGE DO MUNICÍPIO (INTERESSADO)">
+            <hr style="border:0;border-top:1px dashed #cbd5e0;margin:15px 0">
             <div class="form-row"><div class="form-group full"><label>NOME DO CÔNJUGE:</label><input type="text" name="nome_conjuge"></div></div>
             <div class="form-row">
                 <div class="form-group"><label>RG (CÔNJUGE):</label><input type="text" name="rg_conjuge"></div>
-                <div class="form-group"><label>CPF (CÔNJUGE):</label><input type="text" name="cpf_conjuge" data-mask="doc" inputmode="numeric"></div>
+                <div class="form-group"><label>CPF (CÔNJUGE):</label><input type="text" name="cpf_conjuge" data-mask="doc"></div>
                 <div class="form-group"><label>NACIONALIDADE (CÔNJUGE):</label><input type="text" name="nacionalidade_conjuge" list="lst_nac"></div>
             </div>
             <div class="form-row">
                 <div class="form-group"><label>PROFISSÃO (CÔNJUGE):</label><input type="text" name="profissao_conjuge"></div>
                 <div class="form-group"><label>TELEFONE:</label><input type="tel" name="telefone_proprietario" data-mask="fone" inputmode="numeric"></div>
             </div>
-            <div class="form-row">
+            <div class="form-row so-urb">
                 <div class="form-group"><label>E-MAIL:</label><input type="email" name="email_proprietario"></div>
-                <div class="form-group"><label>E-MAIL / CONTATO ADICIONAL:</label><input type="text" name="email_proprietario_2"></div>
+                <div class="form-group"><label>CELULAR:</label><input type="tel" name="celular_proprietario" data-mask="fone" inputmode="numeric"></div>
             </div>
             <div class="form-row"><div class="form-group full"><label>OBSERVAÇÕES (OBS):</label><textarea name="observacoes"></textarea></div></div>
         </fieldset>
 
         <fieldset>
-            <legend>Ficha de Benfeitorias (2ª folha)</legend>
-            <label class="benf-toggle"><input type="checkbox" name="benf_ativa" onchange="renderBenf()"> Incluir Ficha de Benfeitorias <span class="dica" style="font-weight:normal">(desmarque em pré-vistoria)</span></label>
+            <legend><span class="so-urb">Descrição do imóvel e das benfeitorias / culturas</span><span class="so-rur">Descrição das benfeitorias / culturas</span></legend>
+            <label class="toggle"><input type="checkbox" name="benf_ativa" onchange="renderBenf()"> Incluir benfeitorias (2ª folha) <span class="dica">(desmarque em pré-vistoria)</span></label>
+            <div id="benfUrbExtra" class="so-urb" style="margin-top:10px">
+                <div class="form-row">
+                    <div class="form-group"><label>FOTOS GERAIS DO IMÓVEL Nº:</label><input type="text" name="fotos_gerais"></div>
+                    <div class="form-group"><label>FOTOS DO ACESSO Nº:</label><input type="text" name="fotos_acesso"></div>
+                    <div class="form-group"><label>FOTOS DA FACHADA Nº:</label><input type="text" name="fotos_fachada"></div>
+                </div>
+            </div>
             <div id="benfArea"></div>
         </fieldset>
 
-        <fieldset class="photo-section">
+        <fieldset>
+            <legend>Check list</legend>
+            <div class="ck" id="ckArea"></div>
+        </fieldset>
+
+        <fieldset>
             <legend>Registro Fotográfico</legend>
+            <div class="quadro"><h4>CARIMBO NAS FOTOS <span class="dica">(escolha antes de tirar ou anexar – vale para as próximas fotos)</span></h4>
+                <div class="form-row" style="margin:0;align-items:flex-end">
+                    <label class="checkbox-item"><input type="checkbox" name="carimbo_data" checked> Data e hora</label>
+                    <div class="form-group" style="flex:0 1 260px"><label>COORDENADA NA FOTO:</label>
+                        <select name="carimbo_coord"><option value="sem">Sem coordenada</option><option value="latlong">Lat/Long</option><option value="utm">UTM (SIRGAS 2000)</option></select></div>
+                </div>
+                <span class="dica">Se a foto já tiver coordenada própria (galeria), ela é usada; senão, usa a capturada na ficha.</span>
+            </div>
             <div class="foto-botoes">
-                <button type="button" class="btn-foto camera" id="bCamera" onclick="abrirCamera()">📷 TIRAR FOTO</button>
+                <button type="button" class="btn-foto camera" onclick="abrirCamera()">📷 TIRAR FOTO</button>
                 <button type="button" class="btn-foto galeria" onclick="document.getElementById('photoInput').click()">🖼️ ESCOLHER DA GALERIA</button>
             </div>
-            <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoUpload(event.target.files); event.target.value='';">
-            <input type="file" id="photoInput" accept="image/*" multiple style="display: none;" onchange="handlePhotoUpload(event.target.files); event.target.value='';">
-            <div class="photo-upload-box" id="dropZone">
-                <p class="dica" style="margin:0">No computador: arraste as imagens para cá. Data/hora e coordenadas são gravadas na própria foto.</p>
-            </div>
+            <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none" onchange="handlePhotoUpload(event.target.files); event.target.value='';">
+            <input type="file" id="photoInput" accept="image/*" multiple style="display:none" onchange="handlePhotoUpload(event.target.files); event.target.value='';">
+            <div class="photo-upload-box" id="dropZone"><p class="dica" style="margin:0">No computador: arraste as imagens para cá.</p></div>
             <div class="photo-grid" id="photoGrid"></div>
         </fieldset>
 
-        <datalist id="lst_topografia"><option>Plana</option><option>Aclive</option><option>Declive</option><option>Irregular</option><option>Acidentada</option></datalist>
+        <fieldset>
+            <legend>Croqui</legend>
+            <label class="toggle"><input type="checkbox" name="croqui_ativo" onchange="renderCroquis()"> Incluir croqui <span class="dica">(opcional)</span></label>
+            <div id="croquiArea"></div>
+            <div class="quadro" style="margin-top:12px"><h4>IMAGEM AÉREA <span class="dica">(anexo posterior, opcional)</span></h4>
+                <div id="aereaArea"></div>
+                <input type="file" id="aereaInput" accept="image/*" style="display:none" onchange="anexarAerea(this)">
+            </div>
+        </fieldset>
+
+        <datalist id="lst_topografia"><option>Plana</option><option>Aclive</option><option>Declive</option><option>Irregular</option><option>Acidentada</option><option>Ondulada</option></datalist>
         <datalist id="lst_solo"><option>Seco / firme</option><option>Úmido</option><option>Brejoso / alagadiço</option><option>Rochoso</option><option>Aterro</option></datalist>
         <datalist id="lst_simnao"><option>Não</option><option>Sim</option><option>Não identificado</option></datalist>
         <datalist id="lst_uso"><option>Residencial</option><option>Comercial</option><option>Misto</option><option>Industrial</option><option>Institucional</option><option>Terreno vago</option></datalist>
         <datalist id="lst_nac"><option>Brasileira</option></datalist>
         <datalist id="lst_civil"><option>Solteiro(a)</option><option>Casado(a)</option><option>Divorciado(a)</option><option>Viúvo(a)</option><option>União estável</option><option>Não se aplica</option></datalist>
         <datalist id="lst_vinculo"><option>Proprietário</option><option>Possuidor</option><option>Inquilino</option><option>Compromissário comprador</option><option>Herdeiro</option><option>Representante legal</option></datalist>
-        <datalist id="lst_benf"><option>Casa</option><option>Sobrado</option><option>Edícula</option><option>Galpão</option><option>Barracão</option><option>Muro</option><option>Cerca</option><option>Portão</option><option>Piso / pavimento</option><option>Calçada</option><option>Cobertura / telheiro</option><option>Abrigo / guarita</option><option>Poço</option><option>Fossa</option><option>Árvore</option></datalist>
+        <datalist id="lst_ref"><option>Rua</option><option>Estrada</option><option>Rodovia</option><option>Alinhamento predial</option><option>Muro</option><option>Cerca</option><option>Divisa</option></datalist>
     </form>
 
     <div class="actions">
@@ -339,6 +388,7 @@
 <script>
 /* ===================== UTILITÁRIOS ===================== */
 const form = document.getElementById('vistoriaForm');
+const $ = id => document.getElementById(id);
 const UFS = ["","AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
 document.querySelectorAll('.sel-uf').forEach(s => s.innerHTML = UFS.map(u => `<option value="${u}">${u}</option>`).join(''));
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -346,64 +396,68 @@ const v = n => (form.elements[n] ? (form.elements[n].type === 'checkbox' ? form.
 const dataBR = iso => iso ? iso.split('-').reverse().join('/') : '';
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 const hojeISO = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+const nn = i => String(i + 1).padStart(2, '0');
 const NA = '—';
-function toast(t, ms = 2600) { const e = document.getElementById('toast'); e.textContent = t; e.classList.add('show'); clearTimeout(e._t); e._t = setTimeout(() => e.classList.remove('show'), ms); }
-function aviso(tit, passos) {
-    document.getElementById('avTit').textContent = tit;
-    document.getElementById('avPassos').innerHTML = passos.map(p => '<li>' + p + '</li>').join('');
-    document.getElementById('modalAviso').style.display = 'flex';
-}
-function fecharAviso() { document.getElementById('modalAviso').style.display = 'none'; }
-/* valor com unidade (m², m) para PDF/Word */
-const comUn = (n, un) => { const x = v(n); return x && x !== NA && !/m²?\s*$/i.test(x) ? `${x} ${un}` : x; };
+const modelo = () => v('modelo') === 'rural' ? 'rural' : 'urbana';
+const RUR = () => modelo() === 'rural';
+/* aceita vírgula ou ponto decimal; devolve número ou NaN */
+const num = s => { s = String(s ?? '').trim(); if (!s || s === NA) return NaN; if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.'); return parseFloat(s); };
+const fmtNum = (n, d = 2) => n.toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d, useGrouping: false });
+function toast(t, ms = 2600) { const e = $('toast'); e.textContent = t; e.classList.add('show'); clearTimeout(e._t); e._t = setTimeout(() => e.classList.remove('show'), ms); }
+function aviso(tit, passos) { $('avTit').textContent = tit; $('avPassos').innerHTML = passos.map(p => '<li>' + p + '</li>').join(''); $('modalAviso').style.display = 'flex'; }
+function fecharAviso() { $('modalAviso').style.display = 'none'; }
+const comUn = (n, un) => { const x = v(n); return x && x !== NA ? `${x} ${un}` : x; };
+/* campos que existem nos dois modelos com nomes diferentes */
+const vM = (urb, rur) => v(RUR() ? rur : urb);
 
 const mascaras = {
-    cep: d => { d = d.slice(0, 8); return d.length > 5 ? d.slice(0,5) + '-' + d.slice(5) : d; },
-    fone: d => { d = d.slice(0, 11);
+    cep: d => { d = d.replace(/\D/g, '').slice(0, 8); return d.length > 5 ? d.slice(0,5) + '-' + d.slice(5) : d; },
+    fone: d => { d = d.replace(/\D/g, '').slice(0, 11);
         if (d.length <= 2) return d.length ? '(' + d : d;
         if (d.length <= 6) return `(${d.slice(0,2)}) ${d.slice(2)}`;
         if (d.length <= 10) return `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`;
         return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`; },
-    doc: d => { d = d.slice(0, 14);
-        if (d.length <= 11) return d.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2');
-        return d.replace(/^(\d{2})(\d)/,'$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/,'$1.$2.$3').replace(/\.(\d{3})(\d)/,'.$1/$2').replace(/(\d{4})(\d)/,'$1-$2'); }
+    doc: s => { const d = s.toUpperCase().replace(/[^0-9A-Z]/g, '').slice(0, 14);
+        if (d.length <= 11 && !/[A-Z]/.test(d)) return d.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2');
+        return d.replace(/^(\w{2})(\w)/,'$1.$2').replace(/^(\w{2})\.(\w{3})(\w)/,'$1.$2.$3').replace(/\.(\w{3})(\w)/,'.$1/$2').replace(/(\w{4})(\w)/,'$1-$2'); }
 };
-function cpfValido(c){ c=c.replace(/\D/g,''); if(c.length!==11||/^(\d)\1+$/.test(c)) return false;
+function cpfValido(c){ if(c.length!==11||/^(\d)\1+$/.test(c)) return false;
     for (let t=9;t<11;t++){ let s=0; for(let i=0;i<t;i++) s+=c[i]*(t+1-i); if(((s*10)%11)%10!=c[t]) return false; } return true; }
-function cnpjValido(c){ c=c.replace(/\D/g,''); if(c.length!==14||/^(\d)\1+$/.test(c)) return false;
+function cnpjValido(c){ if(c.length!==14||/^(\d)\1+$/.test(c)) return false;
     const calc=n=>{ let s=0,p=n-7; for(let i=0;i<n;i++){ s+=c[i]*p--; if(p<2)p=9; } const r=s%11; return r<2?0:11-r; };
     return calc(12)==c[12] && calc(13)==c[13]; }
 
 form.addEventListener('input', e => {
     const el = e.target, m = el.dataset.mask;
-    if (m && el.value !== NA) el.value = mascaras[m](el.value.replace(/\D/g, ''));
+    if (m && el.value !== NA) el.value = mascaras[m](el.value);
     if (m === 'doc') {
-        const d = el.value.replace(/\D/g,'');
-        const ok = el.value === NA || d.length === 0 || (d.length === 11 && cpfValido(d)) || (d.length === 14 && cnpjValido(d)) || (d.length !== 11 && d.length !== 14);
+        const d = el.value.replace(/[^0-9A-Z]/gi, '');
+        const alfa = /[A-Z]/i.test(d);   // CNPJ alfanumérico: não valida dígito
+        const ok = el.value === NA || alfa || d.length === 0 || (d.length === 11 && cpfValido(d)) || (d.length === 14 && cnpjValido(d)) || (d.length !== 11 && d.length !== 14);
         el.classList.toggle('invalido', !ok);
         el.title = ok ? '' : 'CPF/CNPJ com dígito verificador inválido. Confira o número.';
     }
     if (el.dataset.cep && el.value.replace(/\D/g, '').length === 8) buscarCEP(el.dataset.cep);
+    if (el.name === 'coordenadas' && atual) { delete atual.gps; delete atual.gpsTxt; }   // editada à mão
+    if (/^dist_|^area_declarada/.test(el.name)) atualizarTotais();
     el.classList.remove('faltando');
-    if (el.name === 'coordenadas' && atual) delete atual.gps;   // coordenada editada à mão ou N/A: não usa mais a do GPS
     atualizarNA(el);
     autoSalvar();
 });
 form.addEventListener('change', async e => { e.target.classList.remove('faltando');
     if (['nome_projeto','referencia_cadastral','endereco_imovel'].includes(e.target.name)) { await salvarAgora(); listarFichas(); } else autoSalvar(); });
 ['cad','doc'].forEach(p => form.elements[p + '_outro_txt'].addEventListener('input', e => { form.elements[p + '_outro'].checked = !!e.target.value.trim(); }));
-document.getElementById('mesmoEndereco').addEventListener('change', e => {
+$('mesmoEndereco').addEventListener('change', e => {
     if (!e.target.checked) return;
     ['cep','endereco','bairro','municipio','estado','pais','ibge'].forEach(k => form.elements[k + '_proprietario'].value = form.elements[k + '_imovel'].value);
     form.querySelectorAll('input').forEach(atualizarNA);
-    document.getElementById('cepInfo_proprietario').textContent = 'Copiado do imóvel';
+    $('cepInfo_proprietario').textContent = 'Copiado do imóvel';
     autoSalvar();
 });
-
 function montarBotoesNA() {
     form.querySelectorAll('.form-group').forEach(g => {
         const inp = g.querySelector(':scope > input[type="text"], :scope > input[type="email"], :scope > input[type="tel"], :scope > .com-un > input');
-        if (!inp || inp.name === 'relacao_fotos' || g.querySelector('.na-btn')) return;
+        if (!inp || /relacao_fotos/.test(inp.name) || g.querySelector('.na-btn')) return;
         const b = document.createElement('button');
         b.type = 'button'; b.className = 'na-btn'; b.textContent = 'N/A'; b.title = 'Não se aplica / sem informação (imprime “—”)';
         b.onclick = () => { inp.value = inp.value === NA ? '' : NA; inp.dispatchEvent(new Event('input', { bubbles: true })); };
@@ -416,40 +470,49 @@ function atualizarNA(el) {
     const un = el.parentElement && el.parentElement.classList.contains('com-un') ? el.parentElement.querySelector('.un') : null;
     if (un) un.style.display = el.value === NA ? 'none' : '';
 }
+function totalKm() { return ['dist_asfalto','dist_terra','dist_servidao','dist_corregos'].reduce((s, n) => s + (num(v(n)) || 0), 0); }
+function atualizarTotais() {
+    $('distTotal').textContent = fmtNum(totalKm(), 1);
+    const ha = num(v('area_declarada'));
+    $('haApoio').textContent = isNaN(ha) ? '' : `≈ ${fmtNum(ha * 10000, 2)} m² (apoio)`;
+}
+
+/* ===================== MODELO URBANA / RURAL ===================== */
+function aplicarModelo() {
+    const r = RUR();
+    document.body.classList.toggle('rural', r);
+    $('bUrb').classList.toggle('on', !r); $('bRur').classList.toggle('on', r);
+    $('tituloFicha').textContent = r ? 'FICHA DE VISTORIA – ÁREAS RURAIS' : 'FICHA DE VISTORIA – ÁREAS URBANAS';
+    if (atual && atual.gps && v('coordenadas') === atual.gpsTxt) { atual.gpsTxt = textoCampoGPS(atual.gps); form.elements.coordenadas.value = atual.gpsTxt; }
+    renderBenf(); renderCK(); renderCroquis(); atualizarTotais();
+}
+function trocarModelo(m) { if (modelo() === m) return; form.elements.modelo.value = m; aplicarModelo(); autoSalvar(); listarFichasDebounce(); }
 
 /* ===================== CEP → ENDEREÇO (ViaCEP / IBGE) ===================== */
 const ultimoCEP = {};
 async function buscarCEP(grupo) {
-    const cep = v('cep_' + grupo).replace(/\D/g, ''), info = document.getElementById('cepInfo_' + grupo);
+    const cep = v('cep_' + grupo).replace(/\D/g, ''), info = $('cepInfo_' + grupo);
     if (cep.length !== 8 || ultimoCEP[grupo] === cep) return;
     ultimoCEP[grupo] = cep;
-    if (!navigator.onLine) { info.className = 'dica erro'; info.textContent = 'Sem internet – preencha o endereço manualmente'; return; }
+    if (!navigator.onLine) { ultimoCEP[grupo] = ''; info.className = 'dica erro'; info.textContent = 'Sem internet – preencha o endereço manualmente'; return; }
     info.className = 'dica'; info.textContent = 'Buscando endereço…';
     try {
         const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), 8000);
         const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`, { signal: ctrl.signal }); clearTimeout(t);
         const j = await r.json();
-        if (v('cep_' + grupo).replace(/\D/g, '') !== cep) return;   // CEP mudou durante a busca
-        if (j.erro) { info.className = 'dica erro'; info.textContent = 'CEP não encontrado – confira o número ou preencha manualmente'; return; }
-        // preenche só campos vazios ou que tinham sido preenchidos pela busca anterior
+        if (v('cep_' + grupo).replace(/\D/g, '') !== cep) return;
+        if (j.erro) { ultimoCEP[grupo] = ''; info.className = 'dica erro'; info.textContent = 'CEP não encontrado – confira o número ou preencha manualmente'; return; }
         const pre = (nome, val) => { const el = form.elements[nome]; if (!el || !val) return;
             if (!el.value.trim() || el.value === el.dataset.auto) { el.value = val; el.dataset.auto = val; atualizarNA(el); } };
-        const endEl = form.elements['endereco_' + grupo];
-        const endAntes = endEl.value;
-        pre('endereco_' + grupo, j.logradouro);
-        pre('bairro_' + grupo, j.bairro);
-        pre('municipio_' + grupo, j.localidade);
-        pre('estado_' + grupo, j.uf);
-        pre('pais_' + grupo, 'Brasil');
+        const endEl = form.elements['endereco_' + grupo], endAntes = endEl.value;
+        pre('endereco_' + grupo, j.logradouro); pre('bairro_' + grupo, j.bairro); pre('municipio_' + grupo, j.localidade);
+        pre('estado_' + grupo, j.uf); pre('pais_' + grupo, 'Brasil');
         form.elements['ibge_' + grupo].value = j.ibge || '';
-        info.className = 'dica ok';
-        info.textContent = `${j.localidade}/${j.uf}` + (j.ibge ? ` · IBGE ${j.ibge}` : '') + (endEl.value !== endAntes && j.logradouro ? ' – complete o número' : '');
-        if (endEl.value !== endAntes && j.logradouro) { endEl.focus(); endEl.setSelectionRange(endEl.value.length, endEl.value.length); }
+        const mudou = endEl.value !== endAntes && j.logradouro;
+        info.className = 'dica ok'; info.textContent = `${j.localidade}/${j.uf}` + (j.ibge ? ` · IBGE ${j.ibge}` : '') + (mudou ? ' – complete o número' : '');
+        if (mudou) { endEl.focus(); endEl.setSelectionRange(endEl.value.length, endEl.value.length); }
         autoSalvar();
-    } catch (e) {
-        ultimoCEP[grupo] = '';
-        info.className = 'dica erro'; info.textContent = 'Não foi possível consultar o CEP agora – preencha manualmente';
-    }
+    } catch (e) { ultimoCEP[grupo] = ''; info.className = 'dica erro'; info.textContent = 'Não foi possível consultar o CEP agora – preencha manualmente'; }
 }
 
 /* ===================== ARMAZENAMENTO (IndexedDB) ===================== */
@@ -458,8 +521,7 @@ function abrirDB() {
     return new Promise((res, rej) => {
         const r = indexedDB.open('ficha_vistoria_urbana', 1);
         r.onupgradeneeded = () => { const d = r.result; d.createObjectStore('fichas', { keyPath: 'id' }); d.createObjectStore('config'); };
-        r.onsuccess = () => { db = r.result; res(); };
-        r.onerror = () => rej(r.error);
+        r.onsuccess = () => { db = r.result; res(); }; r.onerror = () => rej(r.error);
     });
 }
 const tx = (st, modo = 'readonly') => db.transaction(st, modo).objectStore(st);
@@ -469,51 +531,62 @@ const dbGet = id => pr(tx('fichas').get(id));
 const dbPut = f => pr(tx('fichas', 'readwrite').put(f));
 const dbDel = id => pr(tx('fichas', 'readwrite').delete(id));
 
-let atual = null, fotos = [], benf = [];
-function fichaVazia() { return { id: uid(), criada: Date.now(), campos: { data_vistoria: hojeISO(), pais_imovel: 'Brasil', pais_proprietario: 'Brasil' }, fotos: [], benf: [] }; }
+let atual = null, fotos = [], benf = [], croquis = [], ck = {};
+function fichaVazia(m = 'urbana') { return { id: uid(), criada: Date.now(), campos: { modelo: m, data_vistoria: hojeISO(), pais_imovel: 'Brasil', pais_proprietario: 'Brasil' }, fotos: [], benf: [], croquis: [], ck: {} }; }
 function coletar() {
     const d = {};
     [...form.elements].forEach(el => { if (el.name) d[el.name] = el.type === 'checkbox' ? el.checked : el.value; });
-    return { ...atual, campos: d, fotos, benf, alterada: Date.now() };
+    return { ...atual, campos: d, fotos, benf, croquis, ck, alterada: Date.now() };
+}
+/* converte fichas salvas em versões anteriores */
+function migrar(f) {
+    const c = f.campos = f.campos || {};
+    if (!c.modelo) c.modelo = 'urbana';
+    if (c.email_proprietario_2 && !c.celular_proprietario) c.celular_proprietario = c.email_proprietario_2;
+    delete c.email_proprietario_2;
+    f.benf = (f.benf || []).map(b => ('padrao' in b || 'qtd' in b) ? {
+        tipo: '', campos: {}, fotosRef: b.fotosRef || '',
+        desc: [b.desc, b.qtd && `${b.qtd} ${b.un || ''}`.trim(), b.padrao && 'Padrão: ' + b.padrao, b.conserv && 'Conservação: ' + b.conserv,
+               b.idade && 'Idade: ' + b.idade + ' anos', b.ating && 'Atingida: ' + b.ating, b.obs].filter(Boolean).join('; ') } : b);
+    f.croquis = f.croquis || []; f.ck = f.ck || {};
+    return f;
 }
 function aplicar(f) {
-    atual = f; form.reset();
+    atual = migrar(f); form.reset();
     form.querySelectorAll('[data-auto]').forEach(el => delete el.dataset.auto);
-    Object.entries(f.campos || {}).forEach(([k, val]) => { const el = form.elements[k]; if (!el || (el.length > 1 && !el.type)) return; if (el.type === 'checkbox') el.checked = !!val; else el.value = val; });
-    fotos = f.fotos || []; benf = f.benf || [];
+    Object.entries(atual.campos).forEach(([k, val]) => { const el = form.elements[k]; if (!el || (el.length > 1 && !el.type)) return; if (el.type === 'checkbox') el.checked = !!val; else el.value = val; });
+    fotos = atual.fotos || []; benf = atual.benf; croquis = atual.croquis; ck = atual.ck;
     form.querySelectorAll('input').forEach(atualizarNA);
     form.querySelectorAll('.invalido,.faltando').forEach(e => e.classList.remove('invalido', 'faltando'));
-    document.getElementById('mesmoEndereco').checked = false;
-    ['imovel','proprietario'].forEach(g => { ultimoCEP[g] = v('cep_' + g).replace(/\D/g, ''); const i = document.getElementById('cepInfo_' + g);
+    $('mesmoEndereco').checked = false;
+    ['imovel','proprietario'].forEach(g => { ultimoCEP[g] = v('cep_' + g).replace(/\D/g, ''); const i = $('cepInfo_' + g);
         i.className = 'dica'; i.textContent = v('ibge_' + g) ? `${v('municipio_' + g)}/${v('estado_' + g)} · IBGE ${v('ibge_' + g)}` : 'Preenche o endereço automaticamente'; });
-    renderFotos(); renderBenf();
+    renderFotos(); renderAerea(); aplicarModelo();
 }
 let tSalvar;
 function autoSalvar() {
     clearTimeout(tSalvar);
     tSalvar = setTimeout(async () => {
         atual = coletar(); await dbPut(atual);
-        document.getElementById('avisoSalvo').textContent = '· salvo às ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-        const o = [...document.getElementById('selFicha').options].find(x => x.value === atual.id);
-        if (o) o.textContent = rotuloFicha(atual);
+        $('avisoSalvo').textContent = '· salvo às ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        const o = [...$('selFicha').options].find(x => x.value === atual.id); if (o) o.textContent = rotuloFicha(atual);
     }, 600);
 }
 async function salvarAgora() { clearTimeout(tSalvar); atual = coletar(); await dbPut(atual); }
 function rotuloFicha(f) {
     const c = f.campos || {};
-    const p = [c.referencia_cadastral || 'Sem referência', c.endereco_imovel || 'sem endereço', dataBR(c.data_vistoria)].filter(Boolean);
-    return (c.nome_projeto ? `[${c.nome_projeto}] ` : '') + p.join(' – ');
+    const p = [c.referencia_cadastral || 'Sem referência', (c.modelo === 'rural' && c.nome_fazenda) || c.endereco_imovel || 'sem endereço', dataBR(c.data_vistoria)].filter(Boolean);
+    return (c.modelo === 'rural' ? '🌾 ' : '🏙️ ') + (c.nome_projeto ? `[${c.nome_projeto}] ` : '') + p.join(' – ');
 }
 async function listarFichas() {
     const todas = (await dbTodas()).sort((a, b) => (b.criada || 0) - (a.criada || 0));
-    const sel = document.getElementById('selFicha');
-    sel.innerHTML = todas.map(f => `<option value="${f.id}" ${atual && f.id === atual.id ? 'selected' : ''}>${esc(rotuloFicha(f))}</option>`).join('');
-    const proj = v('nome_projeto');
-    const nProj = proj ? todas.filter(f => (f.campos?.nome_projeto || '') === proj).length : 0;
-    document.getElementById('infoFichas').textContent = `${todas.length} ficha(s) neste aparelho` + (proj ? ` · ${nProj} no projeto ${proj}` : '');
+    $('selFicha').innerHTML = todas.map(f => `<option value="${f.id}" ${atual && f.id === atual.id ? 'selected' : ''}>${esc(rotuloFicha(f))}</option>`).join('');
+    const proj = v('nome_projeto'), nProj = proj ? todas.filter(f => (f.campos?.nome_projeto || '') === proj).length : 0;
+    $('infoFichas').textContent = `${todas.length} ficha(s) neste aparelho` + (proj ? ` · ${nProj} no projeto ${proj}` : '');
 }
+let tLista; const listarFichasDebounce = () => { clearTimeout(tLista); tLista = setTimeout(async () => { await salvarAgora(); listarFichas(); }, 700); };
 async function trocarFicha(id) { await salvarAgora(); aplicar(await dbGet(id)); listarFichas(); window.scrollTo(0, 0); }
-async function novaFicha() { await salvarAgora(); const f = fichaVazia(); await dbPut(f); aplicar(f); listarFichas(); toast('Nova ficha em branco'); }
+async function novaFicha() { await salvarAgora(); const f = fichaVazia(modelo()); await dbPut(f); aplicar(f); listarFichas(); toast('Nova ficha em branco'); }
 async function novaFichaMesmoProjeto() {
     await salvarAgora();
     const proj = v('nome_projeto');
@@ -521,20 +594,23 @@ async function novaFichaMesmoProjeto() {
     const todas = await dbTodas();
     const re = new RegExp('^' + proj.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '-(\\d+)$');
     const maior = todas.reduce((m, f) => { const x = (f.campos?.referencia_cadastral || '').match(re); return x ? Math.max(m, +x[1]) : m; }, 0);
-    const f = fichaVazia();
+    const f = fichaVazia(modelo());
     Object.assign(f.campos, { nome_projeto: proj, nome_vistoriador: v('nome_vistoriador'), data_vistoria: v('data_vistoria') || hojeISO(),
-                 referencia_cadastral: `${proj}-${String(maior + 1).padStart(3, '0')}`, municipio_imovel: v('municipio_imovel'),
-                 estado_imovel: v('estado_imovel'), pais_imovel: v('pais_imovel') || 'Brasil' });
+        referencia_cadastral: `${proj}-${String(maior + 1).padStart(3, '0')}`, municipio_imovel: v('municipio_imovel'),
+        estado_imovel: v('estado_imovel'), pais_imovel: v('pais_imovel') || 'Brasil',
+        carimbo_data: v('carimbo_data'), carimbo_coord: v('carimbo_coord') });
     await dbPut(f); aplicar(f); listarFichas(); toast('Ficha ' + f.campos.referencia_cadastral + ' criada');
 }
 async function duplicarFicha() {
     await salvarAgora();
     const c = JSON.parse(JSON.stringify(atual)); c.id = uid(); c.criada = Date.now();
-    c.campos.referencia_cadastral = (c.campos.referencia_cadastral || '') + ' (cópia)'; c.fotos = [];
-    await dbPut(c); aplicar(c); listarFichas(); toast('Ficha duplicada (sem as fotos)');
+    c.campos.referencia_cadastral = (c.campos.referencia_cadastral || '') + ' (cópia)';
+    c.campos.coordenadas = ''; delete c.gps; delete c.gpsTxt;          // coordenada é do outro imóvel
+    c.fotos = []; c.croquis = []; delete c.aerea;
+    await dbPut(c); aplicar(c); listarFichas(); toast('Ficha duplicada (sem fotos, croquis e coordenadas)');
 }
 async function excluirFicha() {
-    clearTimeout(tSalvar);   // evita que um salvamento pendente recrie a ficha excluída
+    clearTimeout(tSalvar);
     if (!confirm('Excluir esta ficha e suas fotos deste aparelho?')) return;
     clearTimeout(tSalvar);
     await dbDel(atual.id);
@@ -544,8 +620,7 @@ async function excluirFicha() {
 }
 async function salvarBackup() {
     await salvarAgora();
-    const dados = { tipo: 'ficha_vistoria_backup', data: new Date().toISOString(), fichas: await dbTodas() };
-    baixar(new Blob([JSON.stringify(dados)], { type: 'application/json' }), `Fichas_Vistoria_backup_${hojeISO()}.json`);
+    baixar(new Blob([JSON.stringify({ tipo: 'ficha_vistoria_backup', data: new Date().toISOString(), fichas: await dbTodas() })], { type: 'application/json' }), `Fichas_Vistoria_backup_${hojeISO()}.json`);
 }
 function restaurarBackup(inp) {
     const f = inp.files[0]; if (!f) return; const r = new FileReader();
@@ -561,91 +636,141 @@ function restaurarBackup(inp) {
     r.readAsText(f); inp.value = '';
 }
 
-/* ===================== LOGOTIPO ITAZI (fixo) ===================== */
+/* ===================== LOGOTIPO ===================== */
 let logo = null;
 async function carregarLogo() {
-    try {
-        const b = await (await fetch('icons/logo-itazi.png')).blob();
+    try { const b = await (await fetch('icons/logo-itazi.png')).blob();
         logo = await new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(b); });
-        document.getElementById('logoTela').innerHTML = `<img src="${logo}" alt="Itazi Engenharia">`;
+        $('logoTela').innerHTML = `<img src="${logo}" alt="Itazi Engenharia">`;
     } catch (e) { logo = null; }
 }
 
-/* ===================== GPS ===================== */
+/* ===================== GPS · UTM SIRGAS 2000 ===================== */
 const fmtCoord = n => n.toFixed(6).replace('.', ',');
 const classePrec = m => m <= 5 ? 'Ótima' : m <= 15 ? 'Boa' : m <= 30 ? 'Ruim' : 'Péssima';
+function paraUTM(lat, lon) {   // elipsoide GRS80 (SIRGAS 2000)
+    const a = 6378137, f = 1 / 298.257222101, k0 = 0.9996, e2 = f * (2 - f), ep2 = e2 / (1 - e2);
+    const zona = Math.floor((lon + 180) / 6) + 1, lon0 = ((zona - 1) * 6 - 180 + 3) * Math.PI / 180;
+    const fi = lat * Math.PI / 180, la = lon * Math.PI / 180;
+    const N = a / Math.sqrt(1 - e2 * Math.sin(fi) ** 2), T = Math.tan(fi) ** 2, C = ep2 * Math.cos(fi) ** 2, A = Math.cos(fi) * (la - lon0);
+    const M = a * ((1 - e2 / 4 - 3 * e2 ** 2 / 64 - 5 * e2 ** 3 / 256) * fi - (3 * e2 / 8 + 3 * e2 ** 2 / 32 + 45 * e2 ** 3 / 1024) * Math.sin(2 * fi)
+        + (15 * e2 ** 2 / 256 + 45 * e2 ** 3 / 1024) * Math.sin(4 * fi) - (35 * e2 ** 3 / 3072) * Math.sin(6 * fi));
+    const E = k0 * N * (A + (1 - T + C) * A ** 3 / 6 + (5 - 18 * T + T * T + 72 * C - 58 * ep2) * A ** 5 / 120) + 500000;
+    let Nn = k0 * (M + N * Math.tan(fi) * (A * A / 2 + (5 - T + 9 * C + 4 * C * C) * A ** 4 / 24 + (61 - 58 * T + T * T + 600 * C - 330 * ep2) * A ** 6 / 720));
+    if (lat < 0) Nn += 10000000;
+    const banda = 'CDEFGHJKLMNPQRSTUVWXX'[Math.max(0, Math.min(20, Math.floor((lat + 80) / 8)))];
+    return { zona, banda, E, N: Nn };
+}
+const txtLatLon = g => `Lat ${fmtCoord(g.lat)}  Long ${fmtCoord(g.lon)}`;
+const txtUTM = g => { const u = paraUTM(g.lat, g.lon); return `Fuso ${u.zona}${u.banda}  E ${fmtNum(u.E)}  N ${fmtNum(u.N)}`; };
+const textoCampoGPS = g => (RUR() ? txtUTM(g) : txtLatLon(g)) + (g.prec != null ? `  (±${Math.round(g.prec)} m – ${classePrec(g.prec)})` : '');
 function capturarGPS() {
     if (!navigator.geolocation) { toast('Este aparelho/navegador não oferece localização'); return; }
     toast('Obtendo posição… aguarde alguns segundos ao ar livre', 6000);
     navigator.geolocation.getCurrentPosition(p => {
-        const { latitude, longitude, accuracy } = p.coords, cl = classePrec(accuracy);
-        form.elements.coordenadas.value = `Lat ${fmtCoord(latitude)}  Long ${fmtCoord(longitude)}  (±${Math.round(accuracy)} m – ${cl})`;
-        atual.gps = { lat: latitude, lon: longitude, prec: accuracy, classe: cl };
+        const { latitude, longitude, accuracy } = p.coords;
+        atual.gps = { lat: latitude, lon: longitude, prec: accuracy };
+        atual.gpsTxt = textoCampoGPS(atual.gps); form.elements.coordenadas.value = atual.gpsTxt;
         atualizarNA(form.elements.coordenadas); autoSalvar();
-        toast(accuracy > 15 ? `Precisão ${cl.toLowerCase()} (±${Math.round(accuracy)} m). Vá para área aberta e capture de novo.` : `Posição capturada – precisão ${cl.toLowerCase()} (±${Math.round(accuracy)} m)`, 5000);
-    }, err => {
-        toast(err.code === 1 ? 'Permissão de localização negada. Libere nas configurações do navegador.' : 'Não foi possível obter a posição. Tente novamente.', 5000);
-    }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
-}
-function textoCoordFoto() {
-    if (atual && atual.gps) return `Lat ${fmtCoord(atual.gps.lat)}  Long ${fmtCoord(atual.gps.lon)}`;
-    const t = v('coordenadas'); return t && t !== NA ? t.replace(/\s*\(±.*\)$/, '') : '';
+        const cl = classePrec(accuracy).toLowerCase();
+        toast(accuracy > 15 ? `Precisão ${cl} (±${Math.round(accuracy)} m). Vá para área aberta e capture de novo.` : `Posição capturada – precisão ${cl} (±${Math.round(accuracy)} m)`, 5000);
+    }, err => toast(err.code === 1 ? 'Permissão de localização negada. Libere nas configurações do navegador.' : 'Não foi possível obter a posição. Tente novamente.', 5000),
+    { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
 }
 
-/* ===================== FOTOS (leve na memória) ===================== */
+/* ===================== EXIF (data e GPS gravados pela câmera) ===================== */
+async function lerExif(file) {
+    const r = {};
+    try {
+        const d = new DataView(await file.slice(0, 262144).arrayBuffer());
+        if (d.getUint16(0) !== 0xFFD8) return r;
+        let o = 2;
+        while (o + 4 < d.byteLength) {
+            const mk = d.getUint16(o); if ((mk & 0xFF00) !== 0xFF00 || mk === 0xFFDA) break;
+            const len = d.getUint16(o + 2);
+            if (mk === 0xFFE1 && d.getUint32(o + 4) === 0x45786966) { lerTiff(d, o + 10, r); break; }
+            o += 2 + len;
+        }
+    } catch (e) {}
+    return r;
+}
+function lerTiff(d, t, r) {
+    const le = d.getUint16(t) === 0x4949, u16 = p => d.getUint16(p, le), u32 = p => d.getUint32(p, le);
+    const ifd = (p, cb) => { if (!p || t + p + 2 > d.byteLength) return; const n = u16(t + p);
+        for (let i = 0; i < n; i++) { const e = t + p + 2 + i * 12; if (e + 12 > d.byteLength) return; cb(u16(e), u32(e + 4), e + 8); } };
+    const asc = (cnt, vo) => { const p = cnt > 4 ? t + u32(vo) : vo; let s = ''; for (let i = 0; i < cnt - 1 && p + i < d.byteLength; i++) s += String.fromCharCode(d.getUint8(p + i)); return s; };
+    const rats = vo => { const p = t + u32(vo), a = []; for (let i = 0; i < 3; i++) { const n = u32(p + 8 * i), q = u32(p + 8 * i + 4); a.push(q ? n / q : 0); } return a; };
+    let exifP = 0, gpsP = 0, dt0 = '', dto = '';
+    ifd(u32(t + 4), (tag, cnt, vo) => { if (tag === 0x8769) exifP = u32(vo); else if (tag === 0x8825) gpsP = u32(vo); else if (tag === 0x0132) dt0 = asc(cnt, vo); });
+    ifd(exifP, (tag, cnt, vo) => { if (tag === 0x9003) dto = asc(cnt, vo); });
+    const m = (dto || dt0).match(/(\d{4}):(\d{2}):(\d{2}) (\d{2}):(\d{2}):(\d{2})/);
+    if (m) r.data = new Date(+m[1], m[2] - 1, +m[3], +m[4], +m[5], +m[6]);
+    let la, lo, laR = 'N', loR = 'E';
+    ifd(gpsP, (tag, cnt, vo) => { if (tag === 1) laR = String.fromCharCode(d.getUint8(vo)); else if (tag === 3) loR = String.fromCharCode(d.getUint8(vo));
+        else if (tag === 2 && cnt === 3) la = rats(vo); else if (tag === 4 && cnt === 3) lo = rats(vo); });
+    if (la && lo) { let a = la[0] + la[1] / 60 + la[2] / 3600, b = lo[0] + lo[1] / 60 + lo[2] / 3600;
+        if (laR === 'S') a = -a; if (loR === 'W') b = -b; if (a || b) { r.lat = a; r.lon = b; } }
+}
+
+/* ===================== FOTOS ===================== */
 const MAXF = 1600;
 const ehHEIC = f => /hei[cf]/i.test(f.type || '') || /\.(heic|heif)$/i.test(f.name || '');
-async function decodificar(file) {
-    if (window.createImageBitmap) {   // abre a foto já reduzida, sem carregar 50–200 MP na memória
-        try { return await createImageBitmap(file, { resizeWidth: MAXF, resizeQuality: 'medium', imageOrientation: 'from-image' }); } catch (e) {}
+async function decodificar(file, max = MAXF) {
+    if (window.createImageBitmap) {
+        if (file.size > 2500000) { try { return await createImageBitmap(file, { resizeWidth: max, resizeQuality: 'medium', imageOrientation: 'from-image' }); } catch (e) {} }
         try { return await createImageBitmap(file, { imageOrientation: 'from-image' }); } catch (e) {}
     }
     const url = URL.createObjectURL(file);
-    try { const img = new Image(); img.src = url; await img.decode(); return img; }
-    finally { setTimeout(() => URL.revokeObjectURL(url), 3000); }
+    try { const img = new Image(); img.src = url; await img.decode(); return img; } finally { setTimeout(() => URL.revokeObjectURL(url), 3000); }
+}
+async function reduzir(file, max) {
+    const bmp = await decodificar(file, max);
+    const f = Math.min(1, max / Math.max(bmp.width, bmp.height));   // nunca amplia
+    const c = document.createElement('canvas'); c.width = Math.round(bmp.width * f); c.height = Math.round(bmp.height * f);
+    c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height); if (bmp.close) bmp.close();
+    return c;
 }
 async function processarFoto(file) {
-    const bmp = await decodificar(file);
-    const f = Math.min(1, MAXF / Math.max(bmp.width, bmp.height));
-    const c = document.createElement('canvas'); c.width = Math.round(bmp.width * f); c.height = Math.round(bmp.height * f);
-    const g = c.getContext('2d'); g.drawImage(bmp, 0, 0, c.width, c.height);
-    if (bmp.close) bmp.close();
-    const quando = new Date(file.lastModified || Date.now());
-    const linhas = [quando.toLocaleDateString('pt-BR') + '  ' + quando.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })];
-    const coord = textoCoordFoto(); if (coord) linhas.push(coord);
-    const fs = Math.max(14, Math.round(c.width / 42)), pad = Math.round(fs * 0.5);
-    g.font = `bold ${fs}px Arial, Helvetica, sans-serif`;
-    const larg = Math.max(...linhas.map(l => g.measureText(l).width)) + pad * 2, alt = linhas.length * fs * 1.25 + pad * 1.2;
-    g.fillStyle = 'rgba(0,0,0,0.55)'; g.fillRect(c.width - larg, c.height - alt, larg, alt);
-    g.fillStyle = '#fff'; g.textBaseline = 'top';
-    linhas.forEach((l, i) => g.fillText(l, c.width - larg + pad, c.height - alt + pad * 0.6 + i * fs * 1.25));
-    const src = c.toDataURL('image/jpeg', 0.8);
-    c.width = c.height = 0;
-    return src;
+    const meta = await lerExif(file);                       // lido antes de reduzir (a redução apaga o EXIF)
+    const c = await reduzir(file, MAXF), g = c.getContext('2d');
+    const quando = meta.data || new Date(file.lastModified || Date.now());
+    let coord = null, origem = '';
+    if (meta.lat != null) { coord = { lat: meta.lat, lon: meta.lon }; origem = 'foto'; }
+    else if (atual && atual.gps) { coord = atual.gps; origem = 'ficha'; }
+    const modoC = v('carimbo_coord'), linhas = [];
+    if (v('carimbo_data')) linhas.push(quando.toLocaleDateString('pt-BR') + '  ' + quando.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }));
+    if (modoC !== 'sem' && coord) linhas.push(modoC === 'utm' ? txtUTM(coord) : txtLatLon(coord));
+    if (linhas.length) {
+        const fs = Math.max(14, Math.round(c.width / 42)), pad = Math.round(fs * 0.5);
+        g.font = `bold ${fs}px Arial, Helvetica, sans-serif`;
+        const w = Math.max(...linhas.map(l => g.measureText(l).width)) + pad * 2, h = linhas.length * fs * 1.25 + pad * 1.2;
+        g.fillStyle = 'rgba(0,0,0,0.55)'; g.fillRect(c.width - w, c.height - h, w, h);
+        g.fillStyle = '#fff'; g.textBaseline = 'top';
+        linhas.forEach((l, i) => g.fillText(l, c.width - w + pad, c.height - h + pad * 0.6 + i * fs * 1.25));
+    }
+    const src = c.toDataURL('image/jpeg', 0.8); c.width = c.height = 0;
+    return { src, leg: '', data: quando.toISOString(), carimbo: modoC !== 'sem' && !!coord, origem: coord ? origem : '', lat: coord ? coord.lat : null, lon: coord ? coord.lon : null };
 }
-function abrirCamera() { localStorage.setItem('abrindoCamera', String(Date.now())); document.getElementById('cameraInput').click(); }
-document.getElementById('cameraInput').addEventListener('cancel', () => localStorage.removeItem('abrindoCamera'));
+function abrirCamera() { localStorage.setItem('abrindoCamera', String(Date.now())); $('cameraInput').click(); }
+$('cameraInput').addEventListener('cancel', () => localStorage.removeItem('abrindoCamera'));
+/* se a página voltou a ficar visível, o app não foi fechado pelo sistema */
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') setTimeout(() => localStorage.removeItem('abrindoCamera'), 1500); });
 async function handlePhotoUpload(files) {
     localStorage.removeItem('abrindoCamera');
     const lista = [...(files || [])]; if (!lista.length) return;
-    if (!textoCoordFoto()) toast('Dica: capture a posição antes das fotos para gravar as coordenadas nelas', 3500);
+    if (v('carimbo_coord') !== 'sem' && !(atual && atual.gps)) toast('Sem posição capturada na ficha: só fotos que já têm coordenada receberão o carimbo', 4000);
     let ok = 0, heic = 0, falha = 0;
-    for (const f of lista) {   // uma por vez, para não estourar a memória
-        try { fotos.push({ src: await processarFoto(f), leg: '' }); ok++; }
-        catch (e) { if (ehHEIC(f)) heic++; else falha++; }
-    }
+    for (const f of lista) { try { fotos.push(await processarFoto(f)); ok++; } catch (e) { if (ehHEIC(f)) heic++; else falha++; } }
     renderFotos(); autoSalvar();
     const jaOk = ok ? [`<b>${ok} foto(s) adicionada(s) normalmente.</b>`] : [];
-    if (heic) return aviso('Foto em formato HEIC/HEIF', [...jaOk,
-        'Este navegador não abre fotos HEIC.',
+    if (heic) return aviso('Foto em formato HEIC/HEIF', [...jaOk, 'Este navegador não abre fotos HEIC.',
         'Samsung: app <b>Câmera</b> → ⚙️ → <b>Formatos e opções avançadas</b> → desligue <b>Imagens HEIF</b>.',
         'Outras marcas: nas configurações da câmera, escolha o formato <b>JPG/JPEG</b>.', 'Depois tire a foto de novo.']);
-    if (falha) return aviso(`Não foi possível processar ${falha} foto(s)`, [...jaOk,
-        'O celular ficou sem memória para abrir a imagem.', 'Feche outros aplicativos abertos e tente de novo.',
-        'Se a câmera estiver em 50, 108 ou 200 MP, troque para <b>12 MP</b> (3:4 padrão).']);
+    if (falha) return aviso(`Não foi possível processar ${falha} foto(s)`, [...jaOk, 'O celular ficou sem memória para abrir a imagem.',
+        'Feche outros aplicativos abertos e tente de novo.', 'Se a câmera estiver em 50, 108 ou 200 MP, troque para <b>12 MP</b> (3:4 padrão).']);
     toast(ok === 1 ? 'Foto adicionada (' + fotos.length + ' no total)' : ok + ' fotos adicionadas');
 }
-function verificarCameraFechada() {   // o Android fechou o app enquanto a câmera estava aberta
+function verificarCameraFechada() {
     const t = +localStorage.getItem('abrindoCamera'); localStorage.removeItem('abrindoCamera');
     if (t && Date.now() - t < 5 * 60 * 1000) aviso('O celular fechou o app ao abrir a câmera', [
         'Isso acontece quando falta memória. <b>Sua ficha foi salva</b>; só a última foto se perdeu.',
@@ -654,260 +779,520 @@ function verificarCameraFechada() {   // o Android fechou o app enquanto a câme
         'Ajuda também baixar a resolução da câmera para <b>12 MP</b>.']);
 }
 function renderFotos() {
-    document.getElementById('photoGrid').innerHTML = fotos.map((f, i) => `
+    $('photoGrid').innerHTML = fotos.map((f, i) => `
         <div class="photo-card">
-            <div class="num">Foto ${String(i+1).padStart(2,'0')}</div>
+            <div class="num">Foto ${nn(i)}</div>
+            <div class="orig">${f.origem ? (f.origem === 'foto' ? '📍 coordenada da própria foto' : '📍 coordenada da ficha') + (f.carimbo ? ' · no carimbo' : ' · não carimbada') : ''}</div>
             <img src="${f.src}" alt="Foto da Vistoria">
             <input type="text" placeholder="Legenda da foto..." value="${esc(f.leg)}" oninput="fotos[${i}].leg=this.value;autoSalvar()">
-            <div class="ctrl">
-                <button type="button" onclick="moverFoto(${i},-1)" title="Mover para antes">◀</button>
-                <button type="button" onclick="moverFoto(${i},1)" title="Mover para depois">▶</button>
-                <button type="button" class="rm" onclick="removerFoto(${i})">Remover</button>
-            </div>
+            <div class="ctrl"><button type="button" onclick="moverFoto(${i},-1)">◀</button><button type="button" onclick="moverFoto(${i},1)">▶</button>
+                <button type="button" class="rm" onclick="removerFoto(${i})">Remover</button></div>
         </div>`).join('');
 }
-function moverFoto(i, d){ const j = i + d; if (j < 0 || j >= fotos.length) return; [fotos[i], fotos[j]] = [fotos[j], fotos[i]]; renderFotos(); autoSalvar(); }
-function removerFoto(i){ if (confirm('Remover esta foto?')) { fotos.splice(i, 1); renderFotos(); autoSalvar(); } }
-const dz = document.getElementById('dropZone');
+function moverFoto(i, d) { const j = i + d; if (j < 0 || j >= fotos.length) return; [fotos[i], fotos[j]] = [fotos[j], fotos[i]]; renderFotos(); autoSalvar(); }
+function removerFoto(i) { if (confirm('Remover esta foto?')) { fotos.splice(i, 1); renderFotos(); autoSalvar(); } }
+const dz = $('dropZone');
 ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('arrastando'); }));
 ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('arrastando'); }));
 dz.addEventListener('drop', e => handlePhotoUpload(e.dataTransfer.files));
 
-/* ===================== BENFEITORIAS ===================== */
-const PADROES = ['', 'Rústico', 'Simples', 'Econômico', 'Médio', 'Superior', 'Fino'];
-const CONSERV = ['', 'Novo', 'Bom', 'Regular', 'Necessita reparos', 'Precário', 'Ruína'];
-const ATING = ['', 'Total', 'Parcial', 'Não atingida'];
-const benfVazia = () => ({ desc: '', qtd: '', un: 'm²', padrao: '', conserv: '', idade: '', ating: '', fotosRef: '', obs: '' });
-function renderBenf() {
-    const area = document.getElementById('benfArea');
-    if (!v('benf_ativa')) { area.innerHTML = ''; return; }
-    if (!benf.length) benf.push(benfVazia());
-    const sel = (i, k, ops) => `<select onchange="benf[${i}].${k}=this.value;autoSalvar()">${ops.map(o => `<option ${benf[i][k] === o ? 'selected' : ''}>${o}</option>`).join('')}</select>`;
-    const inp = (i, k, ph = '', extra = '') => `<input type="text" value="${esc(benf[i][k])}" placeholder="${ph}" ${extra} oninput="benf[${i}].${k}=this.value;autoSalvar()">`;
-    area.innerHTML = benf.map((b, i) => `
-        <div class="benf-item">
-            <div class="cab">Benfeitoria ${String(i+1).padStart(2,'0')} <button type="button" class="btn-mini perigo" onclick="removerBenf(${i})">Remover</button></div>
-            <div class="form-row">
-                <div class="form-group" style="flex:2"><label>DESCRIÇÃO:</label>${inp(i,'desc','Ex.: Casa térrea em alvenaria','list="lst_benf"')}</div>
-                <div class="form-group" style="flex:0 0 110px;min-width:110px"><label>ÁREA / QTDE:</label>${inp(i,'qtd','','inputmode="decimal"')}</div>
-                <div class="form-group" style="flex:0 0 90px;min-width:90px"><label>UNIDADE:</label>${sel(i,'un',['m²','m','un','vb'])}</div>
-            </div>
-            <div class="form-row">
-                <div class="form-group"><label>PADRÃO CONSTRUTIVO:</label>${sel(i,'padrao',PADROES)}</div>
-                <div class="form-group"><label>ESTADO DE CONSERVAÇÃO:</label>${sel(i,'conserv',CONSERV)}</div>
-                <div class="form-group" style="flex:0 0 110px;min-width:110px"><label>IDADE APARENTE:</label>${inp(i,'idade','anos','inputmode="numeric"')}</div>
-                <div class="form-group"><label>ATINGIDA:</label>${sel(i,'ating',ATING)}</div>
-            </div>
-            <div class="form-row">
-                <div class="form-group" style="flex:0 0 140px;min-width:140px"><label>FOTOS Nº:</label>${inp(i,'fotosRef','Ex.: 03, 04')}</div>
-                <div class="form-group"><label>OBSERVAÇÕES:</label>${inp(i,'obs')}</div>
-            </div>
-        </div>`).join('') + `
-        <div style="margin-top:10px"><button type="button" class="btn-mini" onclick="benf.push(benfVazia());renderBenf();autoSalvar()">+ Adicionar benfeitoria</button></div>
-        <div class="form-row" style="margin-top:12px"><div class="form-group full"><label>OBSERVAÇÕES GERAIS DAS BENFEITORIAS:</label>
-        <textarea oninput="atual.benfObs=this.value;autoSalvar()">${esc(atual?.benfObs || '')}</textarea></div></div>`;
+/* ===================== CATÁLOGO DE BENFEITORIAS ===================== */
+const CATALOGO_PADRAO = [{"tipo": "Cerca", "campos": ["Tipo de Mourão", "Espaçamento (m)", "Escoramento", "Distância entre Escoras (m)", "Número de Fios", "Tipo de Fio", "Distância Esticadores (m)", "Distância Balancins (m)"]}, {"tipo": "Cerca tipo Curral", "campos": ["Tipo de Mourão", "Espaçamento (m)", "Quantidade de Ripas", "Material das Ripas"]}, {"tipo": "Alambrado", "campos": ["Tipo de Mourão", "Espaçamento (m)", "Escoramento", "Altura da Tela (m)", "Altura Mureta Base (m)", "Número de Fios Sup."]}, {"tipo": "Muro", "campos": ["Altura (m)", "Comprimento (m)", "Espessura (m)", "Tipo de Bloco", "Tipo de Fundação", "Revestimento/Pintura", "Distância entre pilares"]}, {"tipo": "Mureta", "campos": ["Altura (m)", "Comprimento (m)", "Espessura (m)", "Tipo de Bloco", "Revestimento/Pintura"]}, {"tipo": "Piso de Concreto", "campos": ["Espessura (cm)", "Tipo de Base", "Área (m²)", "Meio Fio (Guia)"]}, {"tipo": "Piso Intertravado / Paralelepípedo", "campos": ["Espessura (cm)", "Tipo de Base", "Área (m²)", "Meio Fio (Guia)"]}, {"tipo": "Asfalto", "campos": ["Espessura (cm)", "Tipo de Base", "Área (m²)"]}, {"tipo": "Piso Cerâmico / Madeira", "campos": ["Área (m²)", "Material"]}, {"tipo": "Pátio para Secar Café", "campos": ["Área (m²)", "Tipo de Piso (Concreto/Asfalto/Terra)", "Espessura (cm)"]}, {"tipo": "Portão", "campos": ["Largura (m)", "Altura (m)", "Material", "Tipo de Abertura", "Quantidade"]}, {"tipo": "Porteira", "campos": ["Largura (m)", "Altura (m)", "Material", "Quantidade"]}, {"tipo": "Porta", "campos": ["Largura (m)", "Altura (m)", "Material", "Tipo de Abertura", "Quantidade"]}, {"tipo": "Janela", "campos": ["Largura (m)", "Altura (m)", "Material", "Tipo de Abertura", "Quantidade"]}, {"tipo": "Cobertura", "campos": ["Tipo de Telha", "Vão da Estrutura (m)", "Material da Estrutura", "Área (m²)"]}, {"tipo": "Embarcadouro", "campos": ["Comprimento (m)", "Largura (m)", "Altura (m)", "Material"]}, {"tipo": "Paisagismo (Árvores / Arbustos)", "campos": ["Tipo de Muda / Planta", "Altura da Muda (m)", "Quantidade"]}, {"tipo": "Grama / Pastagem", "campos": ["Tipo de Grama / Pasto", "Área Cultivada (m²)"]}, {"tipo": "Culturas (Plantações)", "campos": ["Espaçamento do Cultivo", "Área Cultivada (m²)"]}, {"tipo": "Piscina", "campos": ["Volume (m³)", "Profundidade (m)", "Revestimento / Material", "Área do Piso do Entorno", "Tipo do Piso do Entorno"]}, {"tipo": "Tanque / Caixa D'Água", "campos": ["Volume (m³)", "Diâmetro / Largura (m)", "Profundidade (m)", "Material"]}, {"tipo": "Poço", "campos": ["Diâmetro (m)", "Profundidade (m)", "Revestimento (Material)", "Laje de Fechamento (m²)"]}, {"tipo": "Fossa Séptica", "campos": ["Diâmetro (m)", "Profundidade (m)", "Volume (m³)"]}, {"tipo": "Guias / Sarjetas / Canaletas", "campos": ["Comprimento (m)", "Material (Alvenaria/Concreto)"]}, {"tipo": "Poste", "campos": ["Tipo de Poste (Aço/Concreto)", "Altura do Poste (m)", "Quantidade"]}, {"tipo": "Entrada de Energia", "campos": ["Potência / Carga", "Tipo de Poste", "Altura do Poste (m)", "Quantidade"]}, {"tipo": "Refletor / Iluminação", "campos": ["Tipo de Luminária / Potência", "Tipo de Poste", "Altura do Poste (m)", "Quantidade"]}, {"tipo": "Terraplenagem / Escavação", "campos": ["Volume (m³)", "Profundidade (m)", "Tipo de Solo"]}, {"tipo": "Demolição", "campos": ["Área (m²) ou Volume (m³)", "Tipo de Material", "Reaproveitamento"]}];
+let CATALOGO = CATALOGO_PADRAO;
+const EDIF = 'Edificação';
+const EDIF_OPC = {
+    tipo: ['De alvenaria', 'De madeira', 'De metal'],
+    revestimento: ['Com revestimento', 'Sem revestimento'],
+    pintura: ['Com pintura', 'Sem pintura', 'Parte com / parte sem pintura'],
+    forro: ['Sem forro', 'De madeira', 'De PVC'],
+    piso: ['Cerâmico', 'Cimentado', 'Cimentado rústico', 'De madeira', 'Sem piso', 'Terra', 'Chapa metálica', 'Pedras'],
+    cobertura: ['Telhas de fibrocimento', 'Telhas cerâmicas', 'Apenas laje', 'Zinco', 'Chapa de madeira', 'Transparente', 'Calhetão'],
+    v_estrutura: ['Estrutura de madeira', 'Estrutura metálica'],
+    v_cobertura: ['Telhas de fibrocimento', 'Telhas cerâmicas'],
+    v_piso: ['Cerâmico', 'Cimentado', 'Cimentado rústico', 'De madeira', 'Sem piso']
+};
+const EDIF_CAMPOS = [['tipo','Tipo'],['revestimento','Revestimento'],['pintura','Pintura'],['forro','Forro'],['piso','Piso'],['cobertura','Cobertura'],
+    ['salas','Sala(s)','q'],['cozinhas','Cozinha(s)','q'],['quartos','Quarto(s)','q'],['wcs','W.C.(s)','q'],
+    ['v_estrutura','Varanda/garagem – estrutura'],['v_cobertura','Varanda/garagem – cobertura'],['v_piso','Varanda/garagem – piso'],
+    ['idade','Idade da edificação (anos)','q'],['f_acesso','Fotos – acesso/fachada','t'],['f_construcao','Fotos – construção','t'],['f_cobertura','Fotos – cobertura','t']];
+async function carregarCatalogo() {
+    try { const r = await fetch('catalogo.json', { cache: 'no-cache' }); const j = await r.json();
+        if (Array.isArray(j) && j.every(x => x.tipo && Array.isArray(x.campos))) CATALOGO = j; } catch (e) {}
 }
-function removerBenf(i) { if (!confirm('Remover esta benfeitoria?')) return; benf.splice(i, 1); renderBenf(); autoSalvar(); }
+const defTipo = t => CATALOGO.find(x => x.tipo === t);
+const unidadeDe = rot => { const m = rot.match(/^[^()]*\(([^()]+)\)\s*$/); return m && ['m','m²','m³','cm','km','ha'].includes(m[1]) ? m[1] : ''; };
+const semUn = rot => unidadeDe(rot) ? rot.replace(/\s*\([^()]+\)\s*$/, '') : rot;
+const itemVazio = () => ({ tipo: '', campos: {}, desc: '', fotosRef: '' });
+function caracteristicas(b) {
+    if (b.tipo === EDIF) return EDIF_CAMPOS.filter(([k]) => b.campos[k]).map(([k, r]) => `${r}: ${b.campos[k]}`).join('; ');
+    const d = defTipo(b.tipo); if (!d) return '';
+    return d.campos.filter(c => (b.campos[c] || '').trim()).map(c => `${semUn(c)}: ${b.campos[c]}${unidadeDe(c) && b.campos[c] !== NA ? ' ' + unidadeDe(c) : ''}`).join('; ');
+}
+function renderBenf() {
+    const area = $('benfArea'), ativo = v('benf_ativa');
+    $('benfUrbExtra').style.display = ativo ? '' : 'none';
+    if (!ativo) { area.innerHTML = ''; return; }
+    if (!benf.length) benf.push(itemVazio());
+    const r = RUR();
+    const opc = t => `<option value="">${r ? '— selecione —' : '— sem tipo (só descrição) —'}</option><option ${t === EDIF ? 'selected' : ''}>${EDIF}</option>` +
+        CATALOGO.map(c => `<option ${c.tipo === t ? 'selected' : ''}>${esc(c.tipo)}</option>`).join('');
+    area.innerHTML = benf.map((b, i) => `
+        <div class="item">
+            <div class="cab">${r ? 'CULTURA / BENFEITORIA / CONSTRUÇÃO' : 'ITEM'} Nº ${nn(i)}
+                <span><button type="button" class="btn-mini" onclick="moverBenf(${i},-1)">↑</button> <button type="button" class="btn-mini" onclick="moverBenf(${i},1)">↓</button>
+                <button type="button" class="btn-mini perigo" onclick="removerBenf(${i})">Remover</button></span></div>
+            <div class="form-row">
+                <div class="form-group" style="flex:2"><label>TIPO${r ? '' : ' (OPCIONAL – CATÁLOGO)'}:</label><select onchange="mudarTipo(${i},this.value)">${opc(b.tipo)}</select></div>
+                <div class="form-group" style="flex:0 0 160px;min-width:140px"><label>RELAÇÃO DE FOTOS:</label><input type="text" value="${esc(b.fotosRef)}" placeholder="Ex.: 03, 04" oninput="benf[${i}].fotosRef=this.value;autoSalvar()"></div>
+            </div>
+            ${camposTipo(b, i)}
+            <div class="form-row"><div class="form-group full"><label>DESCRIÇÃO:</label><textarea oninput="benf[${i}].desc=this.value;autoSalvar()">${esc(b.desc)}</textarea></div></div>
+        </div>`).join('') + `
+        <div style="margin-top:10px"><button type="button" class="btn-mini" onclick="benf.push(itemVazio());renderBenf();autoSalvar()">+ Adicionar ${r ? 'benfeitoria / cultura' : 'item'}</button></div>
+        <div class="form-row" style="margin-top:12px"><div class="form-group full"><label>OBSERVAÇÕES GERAIS:</label>
+        <textarea oninput="atual.benfObs=this.value;autoSalvar()">${esc(atual?.benfObs || '')}</textarea></div></div>`;
+    renderVinculos();
+}
+function camposTipo(b, i) {
+    if (b.tipo === EDIF) return `<div class="form-row">` + EDIF_CAMPOS.map(([k, r, tp]) => {
+        const val = esc(b.campos[k] || ''), lbl = esc(r.toUpperCase()) + (k === 'idade' ? ' *' : '');
+        const inp = tp ? `<input type="text" value="${val}" ${tp === 'q' ? 'inputmode="numeric"' : ''} oninput="setCampo(${i},'${k}',this.value)">`
+            : `<select onchange="setCampo(${i},'${k}',this.value)"><option></option>${EDIF_OPC[k].map(o => `<option ${o === b.campos[k] ? 'selected' : ''}>${o}</option>`).join('')}</select>`;
+        return `<div class="form-group" style="flex:1 1 ${tp === 'q' ? '110px' : '200px'}"><label>${lbl}:</label>${inp}</div>`;
+    }).join('') + `</div><span class="dica">* Idade da edificação: campo obrigatório.</span>`;
+    const d = defTipo(b.tipo); if (!d) return '';
+    return `<div class="form-row">` + d.campos.map((c, k) => { const un = unidadeDe(c), val = esc(b.campos[c] || '');
+        const inp = `<input type="text" value="${val}" ${un ? 'inputmode="decimal"' : ''} oninput="setCampoK(${i},${k},this.value)">`;
+        return `<div class="form-group" style="flex:1 1 180px"><label>${esc(semUn(c).toUpperCase())}:</label>${un ? `<span class="com-un">${inp}<span class="un">${un}</span></span>` : inp}</div>`;
+    }).join('') + `</div>`;
+}
+function mudarTipo(i, t) { benf[i].tipo = t; renderBenf(); autoSalvar(); }
+function setCampo(i, k, val) { benf[i].campos[k] = val; autoSalvar(); }
+function setCampoK(i, k, val) { const d = defTipo(benf[i].tipo); if (d) setCampo(i, d.campos[k], val); }
+function moverBenf(i, d) { const j = i + d; if (j < 0 || j >= benf.length) return; [benf[i], benf[j]] = [benf[j], benf[i]]; renderBenf(); autoSalvar(); }
+function removerBenf(i) { if (!confirm('Remover este item?')) return; benf.splice(i, 1); renderBenf(); autoSalvar(); }
+const ehCerca = b => /^(cerca|alambrado)/i.test(b.tipo || '');
+
+/* ===================== CHECK LIST ===================== */
+function listaCK() {
+    const r = RUR();
+    const L = [
+        ['contato', 'Contato com o ocupante do imóvel?'],
+        ['ocupante_prop', 'O ocupante é proprietário do imóvel? Caso negativo, contatar o proprietário.'],
+        ['divisa', 'Indicação da divisa do imóvel de acordo com as informações do proprietário.'],
+        ['planta', 'O ocupante possui planta do imóvel?'],
+        ['docs', r ? 'O ocupante possui contrato de compra e venda, CCIR ou CAR do imóvel?' : 'O ocupante possui contrato de compra e venda ou IPTU do imóvel?'],
+        ['f_fachada', 'Fotos da fachada.'], ['f_gerais', 'Fotos gerais do imóvel.'], ['f_acesso', 'Fotos do acesso.'],
+        ...(r ? [['distancias', 'Distâncias até o centro urbano preenchidas.']] : []),
+        ['corregos', 'Existem córregos no imóvel? Caso positivo, indicar a relação das fotos e indicá-lo na fotografia aérea.'],
+        ['desc_benf', 'Descrição das benfeitorias.'], ['fotos_benf', 'Indicação das fotografias das benfeitorias.'],
+        ['aerea_benf', 'Indicação das benfeitorias em foto aérea.'],
+        ['croqui', 'Croqui das construções.', 1],
+        ['amarracao', 'Medida de amarração do croqui com detalhes existentes (alinhamento predial, muro, rua, rodovia, cerca etc.).', 1],
+        ['cri', 'Solicitação de documentação junto ao CRI.'],
+        ['circunscricao', 'Houve alteração de circunscrição? Caso positivo, foi solicitada a certidão negativa?'],
+        ['loteamento', 'Imóvel localizado em loteamento? Caso positivo, solicitar a planta de loteamento junto ao cartório.'],
+        ['ente_publico', 'Imóvel pertencente a entes públicos? Caso positivo, protocolar solicitação de resposta formal por ofício.']
+    ];
+    return L;
+}
+function valorCK(id) {
+    if (id === 'croqui') return !v('croqui_ativo') ? 'N/A' : croquis.some(c => c.desenho) ? 'Sim' : 'Não';
+    if (id === 'amarracao') return !v('croqui_ativo') ? 'N/A' : croquis.some(c => (c.amarr || []).filter(a => a.ref && num(a.dist) > 0).length >= 2) ? 'Sim' : 'Não';
+    return ck[id] || '';
+}
+function renderCK() {
+    $('ckArea').innerHTML = listaCK().map(([id, txt, auto]) => `<div>${esc(txt)}</div><div>${auto
+        ? `<span class="auto">${valorCK(id)} (automático)</span>`
+        : `<span class="seg">${[['Sim','s'],['Não','n'],['N/A','a']].map(([o, c]) => `<button type="button" class="${c} ${ck[id] === o ? 'on' : ''}" onclick="marcarCK('${id}','${o}')">${o}</button>`).join('')}</span>`}</div>`).join('');
+}
+function marcarCK(id, o) { ck[id] = ck[id] === o ? '' : o; renderCK(); autoSalvar(); }
+
+/* ===================== CROQUI ===================== */
+const CVW = 1200, CVH = 900, histCroqui = new Map();
+const croquiVazio = () => ({ id: uid(), vinc: '', desenho: '', larg: '', comp: '', amarr: [{ ref: '', dist: '' }, { ref: '', dist: '' }], obs: '', _modo: 'livre' });
+function renderVinculos() {
+    document.querySelectorAll('select[data-vinc]').forEach(s => { const i = +s.dataset.vinc;
+        s.innerHTML = `<option value="">— geral —</option>` + benf.map((b, k) => `<option value="${k}" ${String(croquis[i].vinc) === String(k) ? 'selected' : ''}>${RUR() ? 'Nº' : 'Item'} ${nn(k)}${b.tipo ? ' – ' + esc(b.tipo) : ''}</option>`).join(''); });
+}
+function renderCroquis() {
+    const area = $('croquiArea');
+    if (!v('croqui_ativo')) { area.innerHTML = ''; renderCK(); return; }
+    if (!croquis.length) croquis.push(croquiVazio());
+    area.innerHTML = croquis.map((c, i) => {
+        const modo = c._modo || 'livre';
+        return `<div class="item">
+        <div class="cab">CROQUI ${nn(i)} <span><button type="button" class="btn-mini perigo" onclick="removerCroqui(${i})">Remover</button></span></div>
+        <div class="form-row"><div class="form-group"><label>VINCULADO A:</label><select data-vinc="${i}" onchange="croquis[${i}].vinc=this.value;autoSalvar()"></select></div></div>
+        <div class="ferr"><button type="button" class="btn-mini ${modo === 'livre' ? 'on' : ''}" onclick="modoCroqui(${i},'livre')">✏️ Desenho livre</button>
+            <button type="button" class="btn-mini ${modo === 'medidas' ? 'on' : ''}" onclick="modoCroqui(${i},'medidas')">📐 Por medidas</button></div>
+        <div class="ferr" id="fer_${i}" style="${modo === 'livre' ? '' : 'display:none'}">${[['lapis','Lápis'],['linha','Linha'],['retangulo','Retângulo'],['texto','Texto'],['borracha','Borracha']]
+            .map(([k, t]) => `<button type="button" class="btn-mini ${(c._ferr || 'lapis') === k ? 'on' : ''}" onclick="ferrCroqui(${i},'${k}')">${t}</button>`).join('')}
+            <button type="button" class="btn-mini" onclick="desfazerCroqui(${i})">↶ Desfazer</button><button type="button" class="btn-mini" onclick="norteCroqui(${i})">N ↑</button>
+            <button type="button" class="btn-mini perigo" onclick="limparCroqui(${i})">Limpar</button></div>
+        <div class="form-row" id="med_${i}" style="${modo === 'medidas' ? '' : 'display:none'};align-items:flex-end">
+            <div class="form-group"><label>LARGURA:</label><span class="com-un"><input type="text" inputmode="decimal" value="${esc(c.larg)}" oninput="croquis[${i}].larg=this.value;autoSalvar()"><span class="un">m</span></span></div>
+            <div class="form-group"><label>COMPRIMENTO:</label><span class="com-un"><input type="text" inputmode="decimal" value="${esc(c.comp)}" oninput="croquis[${i}].comp=this.value;autoSalvar()"><span class="un">m</span></span></div>
+            <button type="button" class="btn-mini" onclick="desenharMedidas(${i})">Desenhar em escala</button></div>
+        <div class="cv-wrap"><canvas id="cv_${i}" width="${CVW}" height="${CVH}"></canvas></div>
+        <div class="quadro" style="margin-top:10px"><h4>AMARRAÇÕES <span class="dica">(alinhamentos paralelos: 2 · inclinados: 4)</span></h4>
+            ${(c.amarr || []).map((a, k) => `<div class="form-row">
+                <div class="form-group" style="flex:2"><label>AMARRAÇÃO ${k + 1} – REFERÊNCIA:</label><input type="text" list="lst_ref" value="${esc(a.ref)}" oninput="croquis[${i}].amarr[${k}].ref=this.value;autoSalvar();renderCKdeb()"></div>
+                <div class="form-group"><label>DISTÂNCIA (TRENA):</label><span class="com-un"><input type="text" inputmode="decimal" value="${esc(a.dist)}" oninput="croquis[${i}].amarr[${k}].dist=this.value;autoSalvar();renderCKdeb()"><span class="un">m</span></span></div></div>`).join('')}
+            ${(c.amarr || []).length < 4 ? `<button type="button" class="btn-mini" onclick="croquis[${i}].amarr.push({ref:'',dist:''});renderCroquis();autoSalvar()">+ Amarração</button>` : ''}
+            <div class="form-row" style="margin-top:8px"><div class="form-group full"><label>OBSERVAÇÃO:</label><input type="text" value="${esc(c.obs)}" oninput="croquis[${i}].obs=this.value;autoSalvar()"></div></div>
+        </div></div>`; }).join('') +
+        `<button type="button" class="btn-mini" style="margin-top:10px" onclick="croquis.push(croquiVazio());renderCroquis();autoSalvar()">+ Adicionar croqui (um por construção)</button>`;
+    croquis.forEach((c, i) => ligarCanvas(i));
+    renderVinculos(); renderCK();
+}
+let tCK; const renderCKdeb = () => { clearTimeout(tCK); tCK = setTimeout(renderCK, 400); };
+function modoCroqui(i, m) { croquis[i]._modo = m; renderCroquis(); }
+function ferrCroqui(i, f) { croquis[i]._ferr = f; renderCroquis(); }
+function removerCroqui(i) { if (!confirm('Remover este croqui?')) return; histCroqui.delete(croquis[i].id); croquis.splice(i, 1); renderCroquis(); autoSalvar(); }
+function empilhar(i, cv) { const h = histCroqui.get(croquis[i].id) || []; h.push(cv.toDataURL('image/png')); if (h.length > 10) h.shift(); histCroqui.set(croquis[i].id, h); }
+function salvarCroqui(i, cv) { croquis[i].desenho = cv.toDataURL('image/png'); autoSalvar(); renderCKdeb(); }
+function desfazerCroqui(i) { const h = histCroqui.get(croquis[i].id) || [], cv = $('cv_' + i), g = cv.getContext('2d');
+    if (!h.length) return toast('Nada para desfazer');
+    const src = h.pop(), im = new Image(); im.onload = () => { g.clearRect(0, 0, CVW, CVH); g.drawImage(im, 0, 0); salvarCroqui(i, cv); }; im.src = src; }
+function limparCroqui(i) { if (!confirm('Apagar todo o desenho deste croqui?')) return; const cv = $('cv_' + i); empilhar(i, cv); cv.getContext('2d').clearRect(0, 0, CVW, CVH); croquis[i].desenho = ''; autoSalvar(); renderCKdeb(); }
+function estilo(g, t) {
+    g.lineCap = 'round'; g.lineJoin = 'round';
+    if (t === 'borracha') { g.globalCompositeOperation = 'destination-out'; g.lineWidth = 34; }
+    else { g.globalCompositeOperation = 'source-over'; g.strokeStyle = '#0b2a6b'; g.lineWidth = 4; }
+}
+function ligarCanvas(i) {
+    const cv = $('cv_' + i), g = cv.getContext('2d'), c = croquis[i];
+    if (c.desenho) { const im = new Image(); im.onload = () => g.drawImage(im, 0, 0); im.src = c.desenho; }
+    let ativo = false, p0 = null, snap = null;
+    const pos = e => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) * CVW / r.width, y: (e.clientY - r.top) * CVH / r.height }; };
+    cv.onpointerdown = e => {
+        e.preventDefault(); const p = pos(e), t = c._ferr || 'lapis';
+        empilhar(i, cv);
+        if (t === 'texto') { const s = prompt('Texto do croqui:'); if (s) { g.globalCompositeOperation = 'source-over'; g.fillStyle = '#0b2a6b'; g.font = 'bold 30px Arial'; g.fillText(s, p.x, p.y); salvarCroqui(i, cv); } return; }
+        try { cv.setPointerCapture(e.pointerId); } catch (x) {}
+        ativo = true; p0 = p; estilo(g, t);
+        if (t === 'lapis' || t === 'borracha') { g.beginPath(); g.moveTo(p.x, p.y); } else snap = g.getImageData(0, 0, CVW, CVH);
+    };
+    cv.onpointermove = e => {
+        if (!ativo) return; const p = pos(e), t = c._ferr || 'lapis'; estilo(g, t);
+        if (t === 'lapis' || t === 'borracha') { g.lineTo(p.x, p.y); g.stroke(); }
+        else { g.putImageData(snap, 0, 0); g.beginPath(); if (t === 'linha') { g.moveTo(p0.x, p0.y); g.lineTo(p.x, p.y); } else g.rect(p0.x, p0.y, p.x - p0.x, p.y - p0.y); g.stroke(); }
+    };
+    const fim = () => { if (!ativo) return; ativo = false; snap = null; g.globalCompositeOperation = 'source-over'; salvarCroqui(i, cv); };
+    cv.onpointerup = fim; cv.onpointercancel = fim;
+}
+function norteCroqui(i) { const cv = $('cv_' + i), g = cv.getContext('2d'); empilhar(i, cv);
+    g.globalCompositeOperation = 'source-over'; g.fillStyle = g.strokeStyle = '#0b2a6b'; g.lineWidth = 4;
+    const x = CVW - 70, y = 60; g.beginPath(); g.moveTo(x, y + 70); g.lineTo(x, y); g.stroke();
+    g.beginPath(); g.moveTo(x, y - 6); g.lineTo(x - 14, y + 22); g.lineTo(x + 14, y + 22); g.closePath(); g.fill();
+    g.font = 'bold 32px Arial'; g.textAlign = 'center'; g.fillText('N', x, y + 105); g.textAlign = 'start'; salvarCroqui(i, cv); }
+function desenharMedidas(i) {
+    const c = croquis[i], L = num(c.larg), C = num(c.comp);
+    if (!(L > 0 && C > 0)) return toast('Informe largura e comprimento em metros');
+    const cv = $('cv_' + i), g = cv.getContext('2d'); empilhar(i, cv);
+    const marg = 170, e = Math.min((CVW - 2 * marg) / L, (CVH - 2 * marg) / C), w = L * e, h = C * e, x = (CVW - w) / 2, y = (CVH - h) / 2;
+    g.globalCompositeOperation = 'source-over'; g.strokeStyle = '#0b2a6b'; g.fillStyle = 'rgba(11,42,107,0.07)'; g.lineWidth = 5;
+    g.fillRect(x, y, w, h); g.strokeRect(x, y, w, h);
+    g.fillStyle = '#0b2a6b'; g.lineWidth = 2; g.font = 'bold 30px Arial'; g.textAlign = 'center';
+    g.beginPath(); g.moveTo(x, y - 30); g.lineTo(x + w, y - 30); g.moveTo(x, y - 40); g.lineTo(x, y - 20); g.moveTo(x + w, y - 40); g.lineTo(x + w, y - 20); g.stroke();
+    g.fillText(`${fmtNum(L)} m`, x + w / 2, y - 42);
+    g.beginPath(); g.moveTo(x + w + 30, y); g.lineTo(x + w + 30, y + h); g.moveTo(x + w + 20, y); g.lineTo(x + w + 40, y); g.moveTo(x + w + 20, y + h); g.lineTo(x + w + 40, y + h); g.stroke();
+    g.save(); g.translate(x + w + 62, y + h / 2); g.rotate(-Math.PI / 2); g.fillText(`${fmtNum(C)} m`, 0, 0); g.restore();
+    g.textAlign = 'start'; g.font = '22px Arial'; g.fillText(`Escala aprox. 1 m = ${fmtNum(e / CVW * 100, 1)}% da largura do quadro`, 20, CVH - 20);
+    salvarCroqui(i, cv);
+}
+/* croqui final = grade + desenho (para PDF e Word) */
+function compoeCroqui(c) {
+    return new Promise(res => {
+        const cv = document.createElement('canvas'); cv.width = CVW; cv.height = CVH; const g = cv.getContext('2d');
+        g.fillStyle = '#fff'; g.fillRect(0, 0, CVW, CVH); g.strokeStyle = '#d9dee7'; g.lineWidth = 1;
+        for (let x = 0; x <= CVW; x += 48) { g.beginPath(); g.moveTo(x + .5, 0); g.lineTo(x + .5, CVH); g.stroke(); }
+        for (let y = 0; y <= CVH; y += 48) { g.beginPath(); g.moveTo(0, y + .5); g.lineTo(CVW, y + .5); g.stroke(); }
+        if (!c.desenho) return res(cv.toDataURL('image/jpeg', 0.9));
+        const im = new Image(); im.onload = () => { g.drawImage(im, 0, 0); res(cv.toDataURL('image/jpeg', 0.9)); }; im.onerror = () => res(cv.toDataURL('image/jpeg', 0.9)); im.src = c.desenho;
+    });
+}
+/* imagem aérea (anexo posterior) */
+async function anexarAerea(inp) {
+    const f = inp.files[0]; inp.value = ''; if (!f) return;
+    try { const c = await reduzir(f, 2400); atual.aerea = { src: c.toDataURL('image/jpeg', 0.85), leg: atual.aerea?.leg || '' }; c.width = c.height = 0; renderAerea(); autoSalvar(); }
+    catch (e) { aviso('Não foi possível abrir a imagem', ['Use uma imagem JPG ou PNG.', ehHEIC(f) ? 'O formato HEIC não é aceito pelo navegador.' : 'O arquivo pode estar corrompido ou ser grande demais.']); }
+}
+function renderAerea() {
+    const a = atual?.aerea;
+    $('aereaArea').innerHTML = a ? `<img src="${a.src}" style="max-width:100%;max-height:260px;border:1px solid #cbd5e0"><div class="form-row" style="margin-top:6px">
+        <div class="form-group"><label>LEGENDA:</label><input type="text" value="${esc(a.leg)}" oninput="atual.aerea.leg=this.value;autoSalvar()"></div></div>
+        <button type="button" class="btn-mini perigo" onclick="if(confirm('Remover a imagem aérea?')){delete atual.aerea;renderAerea();autoSalvar()}">Remover imagem</button>`
+        : `<button type="button" class="btn-mini" onclick="$('aereaInput').click()">Anexar imagem aérea processada</button>`;
+}
 
 /* ===================== CONFERÊNCIA (avisa, não bloqueia) ===================== */
-const ESSENCIAIS = [['data_vistoria','Data'],['nome_projeto','Nome do projeto'],['nome_vistoriador','Nome do vistoriador'],['endereco_imovel','Endereço do imóvel'],
-                    ['municipio_imovel','Município'],['estado_imovel','Estado'],['utilizacao_imovel','Utilização do imóvel'],['nome_proprietario','Nome do proprietário']];
 function conferir() {
-    const falta = ESSENCIAIS.filter(([n]) => !v(n));
+    const r = RUR();
+    const ess = [['data_vistoria','Data'],['nome_projeto','Nome do projeto'],['nome_vistoriador','Nome do vistoriador'],
+        ...(r ? [['nome_fazenda','Nome da fazenda/sítio/chácara']] : []), ['endereco_imovel', r ? 'Endereço/localização' : 'Endereço do imóvel'],
+        ['municipio_imovel','Município'],['estado_imovel','Estado'], ...(r ? [] : [['utilizacao_imovel','Utilização do imóvel']]),
+        ['nome_proprietario', r ? 'Nome do proprietário' : 'Nome do interessado']];
+    const falta = ess.filter(([n]) => !v(n));
     form.querySelectorAll('.faltando').forEach(e => e.classList.remove('faltando'));
     falta.forEach(([n]) => form.elements[n].classList.add('faltando'));
-    if (!falta.length) return true;
-    const ok = confirm('Campos essenciais em branco:\n\n• ' + falta.map(f => f[1]).join('\n• ') + '\n\nExportar mesmo assim?');
-    if (!ok) form.elements[falta[0][0]].focus();
+    const msgs = falta.map(f => f[1]);
+    if (v('benf_ativa')) benf.forEach((b, i) => { if (b.tipo === EDIF && !(b.campos.idade || '').trim()) msgs.push(`Idade da edificação (Nº ${nn(i)})`); });
+    if (!msgs.length) return true;
+    const ok = confirm('Campos essenciais em branco:\n\n• ' + msgs.join('\n• ') + '\n\nExportar mesmo assim?');
+    if (!ok && falta.length) form.elements[falta[0][0]].focus();
     return ok;
 }
 
-/* ===================== PDF DIRETO (pdf-lib) ===================== */
+/* ===================== DOCUMENTO (estrutura comum ao PDF e ao Word) ===================== */
 function relacaoFotos() {
-    if (v('relacao_fotos')) return v('relacao_fotos');
+    const x = vM('relacao_fotos', 'relacao_fotos_rur'); if (x) return x;
     if (!fotos.length) return '';
-    return fotos.length === 1 ? 'Foto 01 (anexa)' : `Fotos 01 a ${String(fotos.length).padStart(2,'0')} (anexas)`;
+    return fotos.length === 1 ? 'Foto 01 (anexa)' : `Fotos 01 a ${nn(fotos.length - 1)} (anexas)`;
 }
 function nomeArquivo(ext) {
-    const base = ['Ficha_Vistoria', v('referencia_cadastral') || v('nome_projeto'), (v('data_vistoria') || '').replace(/-/g,'')].filter(Boolean).join('_');
+    const base = ['Ficha_Vistoria', RUR() ? 'Rural' : 'Urbana', v('referencia_cadastral') || v('nome_projeto'), (v('data_vistoria') || '').replace(/-/g,'')].filter(Boolean).join('_');
     return base.replace(/[^\w\-]+/g, '_') + '.' + ext;
 }
-const b64bytes = dataUrl => Uint8Array.from(atob(dataUrl.split(',')[1]), c => c.charCodeAt(0));
+const idLinha = () => [v('nome_projeto') && 'PROJETO: ' + v('nome_projeto'), v('referencia_cadastral') && 'REF. CADASTRAL: ' + v('referencia_cadastral'),
+    v('data_vistoria') && 'DATA: ' + dataBR(v('data_vistoria'))].filter(Boolean).join('     ');
+const kmTxt = n => { const x = v(n); return x && x !== NA ? x + ' km' : x; };
+async function montarDoc() {
+    const r = RUR(), B = [];
+    const tit = s => B.push({ t: 'tit', s }), lin = cols => B.push({ t: 'lin', cols }), nota = s => B.push({ t: 'nota', s });
+    const caixaT = (rot, s, min = 3) => B.push({ t: 'txt', rot, s, min });
+    tit(r ? 'Ficha de Vistoria – Áreas Rurais' : 'Ficha de Vistoria – Áreas Urbanas');
+    lin([['Nome do projeto', v('nome_projeto')]]);
+    lin([['Referência cadastral', v('referencia_cadastral'), 1], ['Data', dataBR(v('data_vistoria')), 0, 70]]);
+    lin([['Nome do vistoriador', v('nome_vistoriador')]]);
+    B.push({ t: 'esp' }); tit('Dados do Imóvel');
+    if (r) lin([['Nome da fazenda/sítio/chácara', v('nome_fazenda')]]);
+    lin([['CEP', v('cep_imovel'), 0, 62], [r ? 'Endereço/localização' : 'Endereço do imóvel', v('endereco_imovel'), 1]]);
+    lin([['Bairro', v('bairro_imovel'), 1], ['Município', v('municipio_imovel'), 1], ['Estado', v('estado_imovel'), 0, 28], ['País', v('pais_imovel'), 0, 60]]);
+    if (!r) {
+        lin([['Coordenadas (lat/long)', v('coordenadas')]]);
+        lin([['Área do terreno', comUn('area_terreno', 'm²'), 1.5], ['Testada', comUn('testada', 'm'), 1.2], ['Lote', v('lote'), 0.8], ['Quadra', v('quadra'), 0.8]]);
+        lin([['Topografia', v('topografia')], ['Consistência do solo', v('consistencia_solo')]]);
+        lin([['Córrego/Rio/Ribeirão', v('corrego')], ['Faixa de servidão', v('faixa_servidao')]]);
+        lin([['Matrícula/Transcrição', v('matricula')], ['Relação de fotos', relacaoFotos()]]);
+        lin([['Utilização do imóvel', v('utilizacao_imovel')]]);
+    } else {
+        lin([['Área declarada pelo proprietário', comUn('area_declarada', 'ha'), 1], ['Matrícula/Transcrição', v('matricula_rur'), 1]]);
+        lin([['Faixa de servidão existente no imóvel', v('faixa_servidao_rur')]]);
+        lin([['Vias de acesso até o imóvel', v('vias_acesso')]]);
+        nota('DISTÂNCIA PERCORRIDA ATÉ O CENTRO URBANO MAIS PRÓXIMO');
+        lin([['Estrada de asfalto', kmTxt('dist_asfalto')], ['Estrada de terra', kmTxt('dist_terra')]]);
+        lin([['Caminho ou servidão', kmTxt('dist_servidao')], ['Córregos sem ponte', kmTxt('dist_corregos')], ['Total', fmtNum(totalKm(), 1) + ' km', 0, 60]]);
+        lin([['Atividade principal', v('atividade_principal')]]);
+        lin([['Recursos hídricos (rios, córregos)', v('recursos_hidricos')]]);
+        lin([['Topografia', v('topografia_rur')], ['Relação de fotos', relacaoFotos()]]);
+        lin([['Coordenadas UTM (SIRGAS 2000)', v('coordenadas')]]);
+        lin([['INCRA', v('incra')], ['CCIR', v('ccir')]]);
+        lin([['CAR', v('car'), 1.7], ['Reserva legal', comUn('reserva_legal', 'ha'), 1]]);
+    }
+    nota('FAVOR DESCREVER AS BENFEITORIAS ATINGIDAS NA SEGUNDA FOLHA (FICHA DE BENFEITORIAS)');
+    B.push({ t: 'chk', tit: 'DADOS CADASTRAIS DO LOCAL', itens: [
+        [v('cad_agua'),'Fornecimento de Água'],[v('cad_luz'),'Luz Domiciliar'],[v('cad_iluminacao'),'Iluminação Pública'],
+        [v('cad_telefone'),'Telefone'],[v('cad_pavimentacao'),'Pavimentação'],[v('cad_guias'),'Guias'],
+        [v('cad_sarjetas'),'Sarjetas'],[v('cad_esgoto'),'Esgoto'],[v('cad_onibus'),'Ônibus Próximo'],
+        [v('cad_trem'),'Trem'],[v('cad_metro'),'Metrô'],[v('cad_outro'), v('cad_outro_txt'), true]] });
+    B.push({ t: 'chk', tit: 'DOCUMENTOS ANEXOS', itens: [
+        [v('doc_registro'),'Registro do imóvel'],[v('doc_compra_venda'),'Doc. de compra e venda'],[v('doc_escritura'),'Planta da Escritura'],
+        [v('doc_fotografica') || fotos.length > 0,'Doc. Fotográfica'],[v('doc_estimativa'),'Estimativa de valor'],[v('doc_levantamento'),'Planta de Levantamento'],
+        [v('doc_planta_remanescente'),'Planta do remanescente'],[v('doc_memorial_desc'),'Memorial descritivo'],[v('doc_memorial_remanesc'),'Memorial do remanesc.'],
+        [v('doc_incra'),'INCRA'],[v('doc_iptu'),'IPTU'],[v('doc_outro'), v('doc_outro_txt'), true]] });
+    tit(r ? 'Dados do Proprietário' : 'Dados dos Interessados');
+    lin([[r ? 'Nome do proprietário' : 'Nome', v('nome_proprietario')]]);
+    lin([['RG', v('rg_proprietario')], ['CPF/CNPJ', v('cpf_proprietario')], ['Nacionalidade', v('nacionalidade_proprietario')]]);
+    lin([['Profissão', v('profissao_proprietario'), 1.6], ['Estado civil', v('estado_civil_proprietario')]]);
+    lin([['Vínculo com imóvel', v('vinculo_imovel')]]);
+    lin([['CEP', v('cep_proprietario'), 0, 62], [r ? 'Endereço do proprietário' : 'Endereço', v('endereco_proprietario'), 1]]);
+    lin([['Bairro', v('bairro_proprietario'), 1], ['Município', v('municipio_proprietario'), 1], ['Estado', v('estado_proprietario'), 0, 28], ['País', v('pais_proprietario'), 0, 60]]);
+    lin([['Nome do cônjuge', v('nome_conjuge')]]);
+    lin([['RG', v('rg_conjuge')], ['CPF', v('cpf_conjuge')], ['Nacionalidade', v('nacionalidade_conjuge')]]);
+    lin([['Profissão', v('profissao_conjuge')], ['Telefone', v('telefone_proprietario')]]);
+    if (!r) lin([['E-mail', v('email_proprietario')], ['Celular', v('celular_proprietario')]]);
+    caixaT('OBS', v('observacoes'), 3);
 
+    if (v('benf_ativa')) {
+        B.push({ t: 'pag' }); tit(r ? 'Descrição das Benfeitorias / Culturas' : 'Descrição do Imóvel e das Benfeitorias / Culturas');
+        lin([['Referência cadastral', v('referencia_cadastral'), 1], ['Data', dataBR(v('data_vistoria')), 0, 70]]);
+        if (!r) { lin([['Fotos gerais do imóvel', v('fotos_gerais')], ['Fotos do acesso', v('fotos_acesso')], ['Fotos da fachada', v('fotos_fachada')]]); }
+        benf.forEach((b, i) => {
+            B.push({ t: 'esp' });
+            lin([[`${r ? 'Cultura/benfeitoria/construção' : 'Item'} Nº ${nn(i)}`, b.tipo, 1], ['Relação de fotos', b.fotosRef, 0, 90]]);
+            const car = caracteristicas(b); if (car) caixaT('Características', car, 1);
+            caixaT('Descrição', b.desc, 2);
+        });
+        if ((atual?.benfObs || '').trim()) caixaT('Observações gerais', atual.benfObs, 2);
+        const edifs = benf.map((b, i) => [b, i]).filter(([b]) => b.tipo === EDIF);
+        for (let p = 0; p < edifs.length; p += 5) {
+            const grupo = edifs.slice(p, p + 5);
+            B.push({ t: 'pag' }); tit(p ? 'Edificações (continuação)' : 'Edificações');
+            lin([['Referência', v('referencia_cadastral'), 1], ['Data', dataBR(v('data_vistoria')), 0, 70], ['Vistoriador', v('nome_vistoriador'), 1]]);
+            B.push({ t: 'tab', cab: ['Edificação', ...grupo.map(([, i]) => 'Nº ' + nn(i))],
+                rows: EDIF_CAMPOS.map(([k, rot]) => [rot + (k === 'idade' ? ' *' : ''), ...grupo.map(([b]) => b.campos[k] || '')]) });
+        }
+        const cercas = benf.map((b, i) => [b, i]).filter(([b]) => ehCerca(b));
+        if (r && cercas.length) {
+            B.push({ t: 'pag' }); tit('Descrição de Cercas e Alambrados');
+            lin([['Referência', v('referencia_cadastral'), 1], ['Vistoriador', v('nome_vistoriador'), 1]]);
+            cercas.forEach(([b, i]) => {
+                B.push({ t: 'esp' }); nota(`${b.tipo.toUpperCase()} – Nº ${nn(i)}`);
+                const d = defTipo(b.tipo), cs = d ? d.campos : [];
+                for (let k = 0; k < cs.length; k += 2) lin(cs.slice(k, k + 2).map(c => [semUn(c), (b.campos[c] || '') + (unidadeDe(c) && b.campos[c] && b.campos[c] !== NA ? ' ' + unidadeDe(c) : '')]));
+                caixaT('Observação', b.desc, 1);
+            });
+        }
+    }
+    B.push({ t: 'pag' }); tit('Check list');
+    B.push({ t: 'sn', itens: listaCK().map(([id, txt]) => [txt, valorCK(id)]) });
+    if (fotos.length) B.push({ t: 'fotos' });
+    if (v('croqui_ativo')) for (let i = 0; i < croquis.length; i++) {
+        const c = croquis[i], b = c.vinc !== '' && benf[+c.vinc];
+        B.push({ t: 'pag' }); tit(`Croqui ${nn(i)}` + (b ? ` – ${r ? 'Nº' : 'Item'} ${nn(+c.vinc)}${b.tipo ? ' (' + b.tipo + ')' : ''}` : ''));
+        B.push({ t: 'img', src: await compoeCroqui(c), alt: 0.62 });
+        if (num(c.larg) > 0 || num(c.comp) > 0) lin([['Largura', c.larg ? c.larg + ' m' : ''], ['Comprimento', c.comp ? c.comp + ' m' : '']]);
+        (c.amarr || []).forEach((a, k) => { if (a.ref || a.dist) lin([[`Amarração ${k + 1} – referência`, a.ref, 1.6], ['Distância', a.dist ? a.dist + ' m' : '', 1]]); });
+        if (c.obs) caixaT('Observação', c.obs, 1);
+    }
+    if (atual?.aerea) { B.push({ t: 'pag' }); tit('Imagem Aérea'); B.push({ t: 'img', src: atual.aerea.src, alt: 0.8 }); if (atual.aerea.leg) caixaT('Legenda', atual.aerea.leg, 1); }
+    return B;
+}
+
+/* ===================== PDF (pdf-lib) ===================== */
+const b64bytes = dataUrl => Uint8Array.from(atob(dataUrl.split(',')[1]), c => c.charCodeAt(0));
+const dimsImg = src => new Promise(res => { const i = new Image(); i.onload = () => res([i.width, i.height]); i.onerror = () => res([1, 1]); i.src = src; });
 async function gerarPDF() {
     const { PDFDocument, StandardFonts, rgb } = PDFLib;
     const pdf = await PDFDocument.create();
-    pdf.setTitle('Ficha de Vistoria – Áreas Urbanas'); pdf.setCreator('Itazi Engenharia – Ficha de Vistoria'); pdf.setLanguage('pt-BR');
+    pdf.setTitle(RUR() ? 'Ficha de Vistoria – Áreas Rurais' : 'Ficha de Vistoria – Áreas Urbanas'); pdf.setCreator('Itazi Engenharia – Ficha de Vistoria'); pdf.setLanguage('pt-BR');
     const F = await pdf.embedFont(StandardFonts.Helvetica), FB = await pdf.embedFont(StandardFonts.HelveticaBold);
-    const MM = 72 / 25.4, W = 595.28, H = 841.89, ML = 13 * MM, MR = 13 * MM, MT = 12 * MM, MB = 12 * MM, CW = W - ML - MR;
+    const MM = 72 / 25.4, W = 595.28, H = 841.89, ML = 13 * MM, MT = 12 * MM, MB = 12 * MM, CW = W - 2 * ML;
     const PRETO = rgb(0, 0, 0), AZUL = rgb(0.04, 0.16, 0.42);
     const T_TIT = 9.5, T_ROT = 8.5, T_VAL = 9.5, T_CHK = 8.5, ESP = 17.5;
-
     const cache = {};
     const limpa = (s, font) => [...String(s ?? '')].map(ch => {
         const k = (font === FB ? 'b' : 'r') + ch; if (k in cache) return cache[k];
-        let out = ch; try { font.widthOfTextAtSize(ch, 10); } catch (e) { out = ch.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); try { if (out) font.widthOfTextAtSize(out, 10); } catch (e2) { out = ''; } }   // emojis e símbolos sem equivalente são omitidos
+        let out = ch; try { font.widthOfTextAtSize(ch, 10); } catch (e) { out = ch.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); try { if (out) font.widthOfTextAtSize(out, 10); } catch (e2) { out = ''; } }
         return cache[k] = out;
     }).join('').replace(/\r/g, '');
     const larg = (s, f, t) => f.widthOfTextAtSize(limpa(s, f), t);
     const cabe = (s, f, t, w) => { s = limpa(s, f); if (f.widthOfTextAtSize(s, t) <= w) return s; while (s.length && f.widthOfTextAtSize(s + '…', t) > w) s = s.slice(0, -1); return s + '…'; };
-    const quebra = (s, f, t, w) => { const out = []; String(s || '').split('\n').forEach(par => { let l = ''; par.split(/\s+/).forEach(p => { const tt = l ? l + ' ' + p : p; if (larg(tt, f, t) <= w) l = tt; else { if (l) out.push(l); l = p; } }); out.push(l); }); return out; };
-
-    let page, y;
+    const quebra = (s, f, t, w) => { const out = []; String(s || '').split('\n').forEach(par => { let l = ''; par.split(/\s+/).forEach(p => { if (!p) return; const tt = l ? l + ' ' + p : p; if (larg(tt, f, t) <= w) l = tt; else { if (l) out.push(l); l = p; } }); out.push(l); }); return out; };
     const logoImg = logo ? await (logo.startsWith('data:image/png') ? pdf.embedPng(b64bytes(logo)) : pdf.embedJpg(b64bytes(logo))) : null;
+    let page, y, novaVazia = false;
     function novaPagina() {
-        page = pdf.addPage([W, H]); y = H - MT;
+        page = pdf.addPage([W, H]); y = H - MT; novaVazia = true;
         if (logoImg) { const h = 11 * MM, w = logoImg.width * h / logoImg.height; page.drawImage(logoImg, { x: ML, y: y - h, width: w, height: h }); y -= h + 3 * MM; }
     }
+    const garantir = h => { if (y - h < MB) novaPagina(); novaVazia = false; };
     const txt = (s, x, yy, t = T_VAL, f = F, c = PRETO) => page.drawText(limpa(s, f), { x, y: yy, size: t, font: f, color: c });
-    function titulo(s) {
-        const h = 14;
-        page.drawRectangle({ x: ML, y: y - h, width: CW, height: h, borderColor: PRETO, borderWidth: 1.1 });
-        txt(s.toUpperCase(), ML + (CW - larg(s.toUpperCase(), FB, T_TIT)) / 2, y - h + 4, T_TIT, FB);
-        y -= h + 6;
-    }
+    const linhaH = (x1, x2, yy, e = 0.6) => page.drawLine({ start: { x: x1, y: yy }, end: { x: x2, y: yy }, thickness: e, color: PRETO });
+    function titulo(s) { garantir(40); const h = 14; page.drawRectangle({ x: ML, y: y - h, width: CW, height: h, borderColor: PRETO, borderWidth: 1.1 });
+        txt(s.toUpperCase(), ML + (CW - larg(s.toUpperCase(), FB, T_TIT)) / 2, y - h + 4, T_TIT, FB); y -= h + 6; }
     function linha(cols) {
-        const gap = 9, base = y - 11;
-        const fix = cols.filter(c => c[3]); const livres = cols.filter(c => !c[3]);
-        const disponivel = CW - gap * (cols.length - 1) - fix.reduce((s, c) => s + larg(c[0].toUpperCase() + ':', F, T_ROT) + 4 + c[3], 0);
-        const somaPesos = livres.reduce((s, c) => s + (c[2] || 1), 0);
+        garantir(ESP); const gap = 9, base = y - 11;
+        const fixo = cols.filter(c => c[3]).reduce((s, c) => s + larg(c[0].toUpperCase() + ':', F, T_ROT) + 4 + c[3], 0);
+        const disp = CW - gap * (cols.length - 1) - fixo, pesos = cols.filter(c => !c[3]).reduce((s, c) => s + (c[2] || 1), 0);
         let x = ML;
-        cols.forEach(c => {
-            const rot = c[0].toUpperCase() + ':'; const wr = larg(rot, F, T_ROT);
-            const wTot = c[3] ? wr + 4 + c[3] : disponivel * (c[2] || 1) / somaPesos;
-            txt(rot, x, base, T_ROT);
-            const x1 = x + wr + 4, x2 = x + wTot;
-            page.drawLine({ start: { x: x1, y: base - 2 }, end: { x: x2, y: base - 2 }, thickness: 0.6, color: PRETO });
-            if (c[1]) { const s = cabe(c[1], F, T_VAL, x2 - x1 - 4); const ws = larg(s, F, T_VAL); txt(s, c[3] ? x1 + (x2 - x1 - ws) / 2 : x1 + 3, base + 0.5, T_VAL, F, AZUL); }
-            x += wTot + gap;
-        });
+        cols.forEach(c => { const rot = c[0].toUpperCase() + ':', wr = larg(rot, F, T_ROT), wT = c[3] ? wr + 4 + c[3] : disp * (c[2] || 1) / pesos;
+            txt(rot, x, base, T_ROT); const x1 = x + wr + 4, x2 = x + wT; linhaH(x1, x2, base - 2);
+            if (c[1]) { const s = cabe(c[1], F, T_VAL, x2 - x1 - 4), ws = larg(s, F, T_VAL); txt(s, c[3] ? x1 + (x2 - x1 - ws) / 2 : x1 + 3, base + 0.5, T_VAL, F, AZUL); }
+            x += wT + gap; });
         y -= ESP;
     }
-    function caixaMarcacoes(tit, itens) {
-        const hT = 14, linhasH = 13, hC = hT + 3 * linhasH + 8;
-        page.drawRectangle({ x: ML, y: y - hC, width: CW, height: hC, borderColor: PRETO, borderWidth: 1.3 });
-        page.drawLine({ start: { x: ML, y: y - hT }, end: { x: ML + CW, y: y - hT }, thickness: 1.1, color: PRETO });
+    function caixa(tit, itens) {
+        const hT = 14, lH = 13, hC = hT + 3 * lH + 8; garantir(hC + 8);
+        page.drawRectangle({ x: ML, y: y - hC, width: CW, height: hC, borderColor: PRETO, borderWidth: 1.3 }); linhaH(ML, ML + CW, y - hT, 1.1);
         txt(tit, ML + (CW - larg(tit, FB, T_TIT)) / 2, y - hT + 4, T_TIT, FB);
         const colW = (CW - 30) / 4, b = 8;
-        itens.forEach((it, i) => {
-            const col = Math.floor(i / 3), lin = i % 3, x = ML + 22 + col * colW, yy = y - hT - 6 - lin * linhasH - b;
+        itens.forEach((it, i) => { const x = ML + 22 + Math.floor(i / 3) * colW, yy = y - hT - 6 - (i % 3) * lH - b;
             page.drawRectangle({ x, y: yy, width: b, height: b, borderColor: PRETO, borderWidth: 0.7 });
             if (it[0]) { page.drawLine({ start: { x: x + 1.6, y: yy + 1.6 }, end: { x: x + b - 1.6, y: yy + b - 1.6 }, thickness: 1.1, color: AZUL });
-                         page.drawLine({ start: { x: x + 1.6, y: yy + b - 1.6 }, end: { x: x + b - 1.6, y: yy + 1.6 }, thickness: 1.1, color: AZUL }); }
-            if (it[2]) { page.drawLine({ start: { x: x + b + 4, y: yy - 1 }, end: { x: x + colW - 12, y: yy - 1 }, thickness: 0.6, color: PRETO });
-                         if (it[1]) txt(cabe(it[1], F, T_CHK, colW - 20), x + b + 6, yy + 1, T_CHK, F, AZUL); }
-            else txt(it[1], x + b + 5, yy + 1, T_CHK);
-        });
+                page.drawLine({ start: { x: x + 1.6, y: yy + b - 1.6 }, end: { x: x + b - 1.6, y: yy + 1.6 }, thickness: 1.1, color: AZUL }); }
+            if (it[2]) { linhaH(x + b + 4, x + colW - 12, yy - 1); if (it[1]) txt(cabe(it[1], F, T_CHK, colW - 20), x + b + 6, yy + 1, T_CHK, F, AZUL); }
+            else txt(it[1], x + b + 5, yy + 1, T_CHK); });
         y -= hC + 8;
     }
-    function obsPautada(texto) {
-        const xo = ML + larg('OBS:', F, T_ROT) + 4;
-        const ls = quebra(texto, F, T_VAL, ML + CW - xo - 4); const n = Math.max(3, ls.length);
-        txt('OBS:', ML, y - 11, T_ROT);
-        for (let i = 0; i < n; i++) {
-            if (y - 15 < MB) { novaPagina(); titulo('Observações (continuação)'); }   // texto longo continua na página seguinte
-            const b = y - 11;
-            page.drawLine({ start: { x: xo, y: b - 2 }, end: { x: ML + CW, y: b - 2 }, thickness: 0.6, color: PRETO });
-            if (ls[i]) txt(ls[i], xo + 3, b + 0.5, T_VAL, F, AZUL);
-            y -= 15;
-        }
-        y -= 6;
-    }
-
-    /* FOLHA 1 */
-    novaPagina();
-    titulo('Ficha de Vistoria – Áreas Urbanas');
-    linha([['Nome do projeto', v('nome_projeto')]]);
-    linha([['Referência cadastral', v('referencia_cadastral'), 1], ['Data', dataBR(v('data_vistoria')), 0, 70]]);
-    linha([['Nome do vistoriador', v('nome_vistoriador')]]);
-    y -= 4; titulo('Dados do Imóvel');
-    linha([['CEP', v('cep_imovel'), 0, 62], ['Endereço do imóvel', v('endereco_imovel'), 1]]);
-    linha([['Bairro', v('bairro_imovel'), 1], ['Município', v('municipio_imovel'), 1], ['Estado', v('estado_imovel'), 0, 28], ['País', v('pais_imovel'), 0, 60]]);
-    linha([['Coordenadas (lat/long)', v('coordenadas')]]);
-    linha([['Área do terreno', comUn('area_terreno', 'm²'), 1.5], ['Testada', comUn('testada', 'm'), 1.2], ['Lote', v('lote'), 0.8], ['Quadra', v('quadra'), 0.8]]);
-    linha([['Topografia', v('topografia')], ['Consistência do solo', v('consistencia_solo')]]);
-    linha([['Córrego/Rio/Ribeirão', v('corrego')], ['Faixa de servidão', v('faixa_servidao')]]);
-    linha([['Matrícula/Transcrição', v('matricula')], ['Relação de fotos', relacaoFotos()]]);
-    linha([['Utilização do imóvel', v('utilizacao_imovel')]]);
-    txt('FAVOR DESCREVER AS BENFEITORIAS ATINGIDAS NA SEGUNDA FOLHA (FICHA DE BENFEITORIAS)', ML, y - 6, T_ROT, FB); y -= 18;
-    caixaMarcacoes('DADOS CADASTRAIS DO LOCAL', [
-        [v('cad_agua'),'Fornecimento de Água'],[v('cad_luz'),'Luz Domiciliar'],[v('cad_iluminacao'),'Iluminação Pública'],
-        [v('cad_telefone'),'Telefone'],[v('cad_pavimentacao'),'Pavimentação'],[v('cad_guias'),'Guias'],
-        [v('cad_sarjetas'),'Sarjetas'],[v('cad_esgoto'),'Esgoto'],[v('cad_onibus'),'Ônibus Próximo'],
-        [v('cad_trem'),'Trem'],[v('cad_metro'),'Metrô'],[v('cad_outro'), v('cad_outro_txt'), true]]);
-    caixaMarcacoes('DOCUMENTOS ANEXOS', [
-        [v('doc_registro'),'Registro do imóvel'],[v('doc_compra_venda'),'Doc. de compra e venda'],[v('doc_escritura'),'Planta da Escritura'],
-        [v('doc_fotografica') || fotos.length > 0,'Doc. Fotográfica'],[v('doc_estimativa'),'Estimativa de valor'],[v('doc_levantamento'),'Planta de Levantamento'],
-        [v('doc_planta_remanescente'),'Planta do remanescente'],[v('doc_memorial_desc'),'Memorial descritivo'],[v('doc_memorial_remanesc'),'Memorial do remanesc.'],
-        [v('doc_incra'),'INCRA'],[v('doc_iptu'),'IPTU'],[v('doc_outro'), v('doc_outro_txt'), true]]);
-    y -= 4; titulo('Dados do Proprietário');
-    linha([['Nome do proprietário', v('nome_proprietario')]]);
-    linha([['RG', v('rg_proprietario')], ['CPF/CNPJ', v('cpf_proprietario')], ['Nacionalidade', v('nacionalidade_proprietario')]]);
-    linha([['Profissão', v('profissao_proprietario'), 1.6], ['Estado civil', v('estado_civil_proprietario')]]);
-    linha([['Vínculo com imóvel', v('vinculo_imovel')]]);
-    linha([['CEP', v('cep_proprietario'), 0, 62], ['Endereço do proprietário', v('endereco_proprietario'), 1]]);
-    linha([['Bairro', v('bairro_proprietario'), 1], ['Município', v('municipio_proprietario'), 1], ['Estado', v('estado_proprietario'), 0, 28], ['País', v('pais_proprietario'), 0, 60]]);
-    linha([['Nome do cônjuge', v('nome_conjuge')]]);
-    linha([['RG', v('rg_conjuge')], ['CPF', v('cpf_conjuge')], ['Nacionalidade', v('nacionalidade_conjuge')]]);
-    linha([['Profissão', v('profissao_conjuge')], ['Telefone', v('telefone_proprietario')]]);
-    linha([['E-mail', v('email_proprietario')], ['E-mail', v('email_proprietario_2')]]);
-    obsPautada(v('observacoes'));
-
-    const idLinha = () => [v('nome_projeto') && 'PROJETO: ' + v('nome_projeto'), v('referencia_cadastral') && 'REF. CADASTRAL: ' + v('referencia_cadastral'), v('data_vistoria') && 'DATA: ' + dataBR(v('data_vistoria'))].filter(Boolean).join('     ');
-
-    /* FOLHA 2: BENFEITORIAS (opcional) */
-    if (v('benf_ativa')) {
-        novaPagina(); titulo('Ficha de Benfeitorias');
-        linha([['Nome do projeto', v('nome_projeto')]]);
-        linha([['Referência cadastral', v('referencia_cadastral'), 1], ['Data', dataBR(v('data_vistoria')), 0, 70]]);
-        linha([['Endereço do imóvel', v('endereco_imovel')]]);
+    function caixaTexto(rot, texto, min) {
+        const r = rot.toUpperCase() + ':', xo = ML + larg(r, F, T_ROT) + 4;
+        const ls = quebra(texto, F, T_VAL, ML + CW - xo - 4), n = Math.max(min, ls.filter(l => l !== '').length ? ls.length : min);
+        garantir(15); txt(r, ML, y - 11, T_ROT);
+        for (let i = 0; i < n; i++) { garantir(15); const b = y - 11; linhaH(xo, ML + CW, b - 2); if (ls[i]) txt(ls[i], xo + 3, b + 0.5, T_VAL, F, AZUL); y -= 15; }
         y -= 4;
-        const cols = [['Nº', 20], ['DESCRIÇÃO DA BENFEITORIA', 0], ['ÁREA/QTDE', 58], ['PADRÃO', 58], ['CONSERVAÇÃO', 72], ['IDADE', 36], ['ATINGIDA', 52], ['FOTOS', 40]];
-        cols[1][1] = CW - cols.reduce((s, c) => s + c[1], 0);
-        const cab = 14, pad = 3;
-        const desenhaCab = () => { let x = ML; page.drawRectangle({ x: ML, y: y - cab, width: CW, height: cab, color: rgb(0.92, 0.94, 0.97), borderColor: PRETO, borderWidth: 0.8 });
-            cols.forEach(c => { txt(c[0], x + (c[1] - larg(c[0], FB, 7.5)) / 2, y - cab + 4.5, 7.5, FB); x += c[1]; if (x < ML + CW - 1) page.drawLine({ start: { x, y }, end: { x, y: y - cab }, thickness: 0.8, color: PRETO }); }); y -= cab; };
-        desenhaCab();
-        (benf.length ? benf : [benfVazia()]).forEach((b, i) => {
-            const desc = [b.desc, b.obs && '(' + b.obs + ')'].filter(Boolean).join(' ');
-            const valores = [String(i + 1).padStart(2, '0'), desc, b.qtd ? `${b.qtd} ${b.un}` : '', b.padrao, b.conserv, b.idade ? b.idade + ' anos' : '', b.ating, b.fotosRef];
-            const linhasCel = valores.map((val, k) => k === 1 ? quebra(val, F, T_CHK, cols[k][1] - pad * 2) : [cabe(val, F, T_CHK, cols[k][1] - pad * 2)]);
-            const hL = Math.max(16, Math.max(...linhasCel.map(l => l.length)) * 10.5 + 6);
-            if (y - hL < MB + 60) { novaPagina(); titulo('Ficha de Benfeitorias (continuação)'); desenhaCab(); }
-            let x = ML; page.drawRectangle({ x: ML, y: y - hL, width: CW, height: hL, borderColor: PRETO, borderWidth: 0.8 });
-            linhasCel.forEach((ls, k) => { ls.forEach((l, j) => txt(l, k === 1 ? x + pad : x + (cols[k][1] - larg(l, F, T_CHK)) / 2, y - 10 - j * 10.5, T_CHK, F, AZUL));
-                x += cols[k][1]; if (x < ML + CW - 1) page.drawLine({ start: { x, y }, end: { x, y: y - hL }, thickness: 0.8, color: PRETO }); });
-            y -= hL;
-        });
-        y -= 12;
-        obsPautada(atual?.benfObs || '');
     }
-
-    /* RELAÇÃO DE FOTOS: 4 por página */
-    for (let p = 0; p < fotos.length; p += 4) {
-        novaPagina(); titulo(p ? 'Relação de Fotos (continuação)' : 'Relação de Fotos');
-        const id = idLinha(); if (id) { txt(cabe(id, F, T_ROT, CW), ML, y - 4, T_ROT); y -= 14; }
-        const gap = 8, cw = (CW - gap) / 2, legH = 14, ch = (y - MB - gap) / 2;
-        for (let k = 0; k < 4 && p + k < fotos.length; k++) {
-            const f = fotos[p + k], col = k % 2, lin = Math.floor(k / 2);
-            const x = ML + col * (cw + gap), top = y - lin * (ch + gap);
-            page.drawRectangle({ x, y: top - ch, width: cw, height: ch, borderColor: PRETO, borderWidth: 0.7 });
-            const img = await pdf.embedJpg(b64bytes(f.src));
-            const aw = cw - 8, ah = ch - legH - 8, e2 = Math.min(aw / img.width, ah / img.height), iw = img.width * e2, ih = img.height * e2;
-            page.drawImage(img, { x: x + 4 + (aw - iw) / 2, y: top - 4 - ah + (ah - ih) / 2, width: iw, height: ih });
-            const leg = `FOTO ${String(p + k + 1).padStart(2, '0')}`;
-            txt(leg, x + 4, top - ch + 5, T_ROT, FB);
-            if (f.leg) txt(cabe('– ' + f.leg, F, T_ROT, cw - 12 - larg(leg, FB, T_ROT)), x + 8 + larg(leg, FB, T_ROT), top - ch + 5, T_ROT, F, AZUL);
+    function listaSN(itens) {
+        const wQ = CW - 3 * 34 - 6, cab = () => { garantir(16); page.drawRectangle({ x: ML, y: y - 14, width: CW, height: 14, color: rgb(0.92, 0.94, 0.97), borderColor: PRETO, borderWidth: 0.6 });
+            txt('ITEM', ML + 4, y - 10, 7.5, FB); ['SIM', 'NÃO', 'N/A'].forEach((s, k) => txt(s, ML + wQ + 6 + k * 34 + (34 - larg(s, FB, 7.5)) / 2, y - 10, 7.5, FB)); y -= 14; };
+        cab();
+        itens.forEach(([q, r]) => { const ls = quebra(q, F, T_CHK, wQ - 8), h = Math.max(14, ls.length * 10.5 + 4);
+            if (y - h < MB) { novaPagina(); cab(); }
+            page.drawRectangle({ x: ML, y: y - h, width: CW, height: h, borderColor: PRETO, borderWidth: 0.5 });
+            ls.forEach((l, j) => txt(l, ML + 4, y - 10 - j * 10.5, T_CHK));
+            ['Sim', 'Não', 'N/A'].forEach((o, k) => { const bx = ML + wQ + 6 + k * 34 + 13, by = y - h / 2 - 4;
+                page.drawRectangle({ x: bx, y: by, width: 8, height: 8, borderColor: PRETO, borderWidth: 0.7 });
+                if (r === o) { page.drawLine({ start: { x: bx + 1.6, y: by + 1.6 }, end: { x: bx + 6.4, y: by + 6.4 }, thickness: 1.1, color: AZUL });
+                    page.drawLine({ start: { x: bx + 1.6, y: by + 6.4 }, end: { x: bx + 6.4, y: by + 1.6 }, thickness: 1.1, color: AZUL }); } });
+            y -= h; });
+        y -= 8;
+    }
+    function tabela(cab, rows) {
+        const w0 = 150, wc = (CW - w0) / (cab.length - 1), ws = [w0, ...cab.slice(1).map(() => wc)];
+        const desenha = (cells, bold, fundo) => { const ls = cells.map((c, k) => quebra(c, bold || k === 0 ? FB : F, 7.5, ws[k] - 6)), h = Math.max(13, Math.max(...ls.map(l => l.length)) * 9.5 + 4);
+            garantir(h); let x = ML;
+            cells.forEach((c, k) => { page.drawRectangle({ x, y: y - h, width: ws[k], height: h, borderColor: PRETO, borderWidth: 0.5, color: fundo ? rgb(0.92, 0.94, 0.97) : undefined });
+                ls[k].forEach((l, j) => txt(l, k === 0 ? x + 3 : x + (ws[k] - larg(l, bold || k === 0 ? FB : F, 7.5)) / 2, y - 9.5 - j * 9.5, 7.5, bold || k === 0 ? FB : F, k === 0 || bold ? PRETO : AZUL));
+                x += ws[k]; });
+            y -= h; };
+        desenha(cab, true, true); rows.forEach(rw => desenha(rw, false, false)); y -= 6;
+    }
+    async function imagem(src, altRel) {
+        const img = src.startsWith('data:image/png') ? await pdf.embedPng(b64bytes(src)) : await pdf.embedJpg(b64bytes(src));
+        const maxH = Math.min(y - MB - 10, (H - MT - MB) * altRel), e = Math.min(CW / img.width, maxH / img.height), w = img.width * e, h = img.height * e;
+        garantir(h + 4); page.drawImage(img, { x: ML + (CW - w) / 2, y: y - h, width: w, height: h });
+        page.drawRectangle({ x: ML + (CW - w) / 2, y: y - h, width: w, height: h, borderColor: PRETO, borderWidth: 0.6 }); y -= h + 10;
+    }
+    async function paginasFotos() {
+        for (let p = 0; p < fotos.length; p += 4) {
+            novaPagina(); titulo(p ? 'Relação de Fotos (continuação)' : 'Relação de Fotos');
+            const id = idLinha(); if (id) { txt(cabe(id, F, T_ROT, CW), ML, y - 4, T_ROT); y -= 14; }
+            const gap = 8, cw = (CW - gap) / 2, legH = 14, ch = (y - MB - gap) / 2;
+            for (let k = 0; k < 4 && p + k < fotos.length; k++) {
+                const f = fotos[p + k], x = ML + (k % 2) * (cw + gap), top = y - Math.floor(k / 2) * (ch + gap);
+                page.drawRectangle({ x, y: top - ch, width: cw, height: ch, borderColor: PRETO, borderWidth: 0.7 });
+                const img = await pdf.embedJpg(b64bytes(f.src));
+                const aw = cw - 8, ah = ch - legH - 8, e2 = Math.min(aw / img.width, ah / img.height), iw = img.width * e2, ih = img.height * e2;
+                page.drawImage(img, { x: x + 4 + (aw - iw) / 2, y: top - 4 - ah + (ah - ih) / 2, width: iw, height: ih });
+                const leg = `FOTO ${nn(p + k)}`; txt(leg, x + 4, top - ch + 5, T_ROT, FB);
+                if (f.leg) txt(cabe('– ' + f.leg, F, T_ROT, cw - 12 - larg(leg, FB, T_ROT)), x + 8 + larg(leg, FB, T_ROT), top - ch + 5, T_ROT, F, AZUL);
+            }
+            y = MB;
         }
+    }
+    const doc = await montarDoc();
+    novaPagina();
+    for (const b of doc) {
+        if (b.t === 'pag') { if (!novaVazia) novaPagina(); }
+        else if (b.t === 'tit') titulo(b.s);
+        else if (b.t === 'lin') linha(b.cols);
+        else if (b.t === 'nota') { garantir(16); txt(b.s, ML, y - 8, T_ROT, FB); y -= 15; }
+        else if (b.t === 'esp') y -= 4;
+        else if (b.t === 'chk') caixa(b.tit, b.itens);
+        else if (b.t === 'txt') caixaTexto(b.rot, b.s, b.min);
+        else if (b.t === 'sn') listaSN(b.itens);
+        else if (b.t === 'tab') tabela(b.cab, b.rows);
+        else if (b.t === 'img') await imagem(b.src, b.alt);
+        else if (b.t === 'fotos') await paginasFotos();
     }
     return await pdf.save();
 }
-
 async function pdfComoArquivo() {
     if (!conferir()) return null;
     await salvarAgora();
     const bts = document.querySelectorAll('#bPdf,#bShare'); bts.forEach(b => b.disabled = true);
-    try { const bytes = await gerarPDF(); return new File([bytes], nomeArquivo('pdf'), { type: 'application/pdf' }); }
+    try { return new File([await gerarPDF()], nomeArquivo('pdf'), { type: 'application/pdf' }); }
     catch (e) { console.error(e); alert('Erro ao gerar o PDF: ' + e.message); return null; }
     finally { bts.forEach(b => b.disabled = false); }
 }
@@ -916,10 +1301,7 @@ async function compartilharPDF() {
     const f = await pdfComoArquivo(); if (!f) return;
     if (navigator.canShare && navigator.canShare({ files: [f] })) {
         try { await navigator.share({ files: [f], title: f.name }); }
-        catch (e) {
-            if (e.name === 'NotAllowedError') painelCompartilhar(f);   // o PDF demorou e o celular exige um novo toque
-            else if (e.name !== 'AbortError') { baixar(f, f.name); toast('Compartilhamento indisponível – PDF baixado'); }
-        }
+        catch (e) { if (e.name === 'NotAllowedError') painelCompartilhar(f); else if (e.name !== 'AbortError') { baixar(f, f.name); toast('Compartilhamento indisponível – PDF baixado'); } }
     } else { baixar(f, f.name); toast('Este aparelho não permite compartilhar arquivos – PDF baixado'); }
 }
 function painelCompartilhar(f) {
@@ -936,60 +1318,46 @@ function painelCompartilhar(f) {
     m.querySelector('#pcFechar').onclick = () => m.remove();
 }
 
-/* ===================== WORD (.docx real, gerado no aparelho) ===================== */
+/* ===================== WORD (.docx) ===================== */
 function carregarDocx() {
     if (window.docx) return Promise.resolve();
-    return new Promise((res, rej) => {
-        const sc = document.createElement('script'); sc.src = 'docx.js';
-        sc.onload = () => res();
-        sc.onerror = () => rej(new Error('Não foi possível carregar o gerador de Word (docx.js). Abra o app uma vez com internet.'));
-        document.head.appendChild(sc);
-    });
+    return new Promise((res, rej) => { const sc = document.createElement('script'); sc.src = 'docx.js'; sc.onload = () => res();
+        sc.onerror = () => rej(new Error('Não foi possível carregar o gerador de Word (docx.js). Abra o app uma vez com internet.')); document.head.appendChild(sc); });
 }
 async function exportDOC() {
     if (!conferir()) return;
-    await salvarAgora();
-    toast('Gerando arquivo do Word…', 4000);
+    await salvarAgora(); toast('Gerando arquivo do Word…', 4000);
     try { await carregarDocx(); } catch (e) { alert(e.message); return; }
     try { const blob = await gerarDOCX(); baixar(blob, nomeArquivo('docx')); toast('Word gerado: ' + nomeArquivo('docx')); }
     catch (e) { console.error(e); alert('Erro ao gerar o Word: ' + e.message); }
 }
 async function gerarDOCX() {
-    const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, BorderStyle, AlignmentType,
-            ImageRun, Header, TableLayoutType, VerticalAlign, ShadingType } = window.docx;
-    const TW = 10433;
-    const AZ = '0B2A6B', S_ROT = 17, S_VAL = 19, S_TIT = 19, S_CHK = 17;
-    const NADA = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
-    const SEM = { top: NADA, bottom: NADA, left: NADA, right: NADA };
-    const fina = { style: BorderStyle.SINGLE, size: 4, color: '000000' };
-    const grossa = { style: BorderStyle.SINGLE, size: 12, color: '000000' };
+    const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, BorderStyle, AlignmentType, ImageRun, Header, TableLayoutType, VerticalAlign, ShadingType } = window.docx;
+    const TW = 10433, AZ = '0B2A6B', S_ROT = 17, S_VAL = 19, S_TIT = 19, S_CHK = 17;
+    const NADA = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' }, SEM = { top: NADA, bottom: NADA, left: NADA, right: NADA };
+    const fina = { style: BorderStyle.SINGLE, size: 4, color: '000000' }, grossa = { style: BorderStyle.SINGLE, size: 12, color: '000000' };
+    const TODAS = { top: fina, bottom: fina, left: fina, right: fina };
     const ctx = document.createElement('canvas').getContext('2d');
-    const medir = (t, pt, bold) => { ctx.font = `${bold ? 'bold ' : ''}${pt}pt Arial`; return Math.ceil(ctx.measureText(t).width * 15 * 1.06) + 200; };
+    const medir = t => { ctx.font = '8.5pt Arial'; return Math.ceil(ctx.measureText(t).width * 15 * 1.06) + 200; };
     const run = (t, o = {}) => new TextRun({ text: String(t ?? ''), font: 'Arial', size: o.size || S_VAL, bold: !!o.bold, color: o.color || '000000' });
-    const par = (filhos, o = {}) => new Paragraph({ children: [].concat(filhos), alignment: o.al, spacing: { before: o.antes || 0, after: o.depois || 0 } });
+    const par = (filhos, o = {}) => new Paragraph({ children: [].concat(filhos), alignment: o.al, spacing: { before: o.antes || 0, after: o.depois || 0 }, pageBreakBefore: !!o.quebra });
     const cel = (filhos, w, o = {}) => new TableCell({ children: [].concat(filhos), width: { size: w, type: WidthType.DXA }, borders: o.b || SEM,
-        verticalAlign: o.va || VerticalAlign.BOTTOM, columnSpan: o.span, shading: o.sh ? { type: ShadingType.CLEAR, fill: o.sh, color: 'auto' } : undefined,
-        margins: { top: 20, bottom: 20, left: 40, right: 40 } });
-    const tabela = (linhas, cols, o = {}) => new Table({ rows: linhas, columnWidths: cols, width: { size: TW, type: WidthType.DXA },
-        layout: TableLayoutType.FIXED, borders: o.b || { ...SEM, insideHorizontal: NADA, insideVertical: NADA } });
-    const espaco = (pts = 4) => par(run(''), { depois: pts * 20 });
-    const titulo = t => tabela([new TableRow({ children: [cel(par(run(t.toUpperCase(), { bold: true, size: S_TIT }), { al: AlignmentType.CENTER }), TW,
-        { b: { top: grossa, bottom: grossa, left: grossa, right: grossa }, va: VerticalAlign.CENTER })] })], [TW]);
+        verticalAlign: o.va || VerticalAlign.BOTTOM, columnSpan: o.span, shading: o.sh ? { type: ShadingType.CLEAR, fill: o.sh, color: 'auto' } : undefined, margins: { top: 20, bottom: 20, left: 40, right: 40 } });
+    const tabela = (linhas, cols, b) => new Table({ rows: linhas, columnWidths: cols, width: { size: TW, type: WidthType.DXA }, layout: TableLayoutType.FIXED, borders: b || { ...SEM, insideHorizontal: NADA, insideVertical: NADA } });
+    const espaco = (p = 4) => par(run(''), { depois: p * 20 });
+    const corpo = []; let quebrar = false;
+    const add = (...els) => { if (quebrar) { corpo.push(par(run(''), { quebra: true })); quebrar = false; } corpo.push(...els); };
+    const titulo = t => add(tabela([new TableRow({ children: [cel(par(run(t.toUpperCase(), { bold: true, size: S_TIT }), { al: AlignmentType.CENTER }), TW, { b: { top: grossa, bottom: grossa, left: grossa, right: grossa }, va: VerticalAlign.CENTER })] })], [TW]), espaco(3));
     function linha(cols) {
-        const gap = 160;
-        const rotW = cols.map(c => medir(c[0].toUpperCase() + ':', 8.5));
-        const fixos = cols.reduce((s, c, i) => s + rotW[i] + (c[3] || 0), 0) + gap * (cols.length - 1);
-        const pesos = cols.reduce((s, c) => s + (c[3] ? 0 : (c[2] || 1)), 0);
-        const livre = Math.max(600, TW - fixos);
-        const lg = [], cells = [];
-        cols.forEach((c, i) => {
-            const vw = c[3] || Math.floor(livre * (c[2] || 1) / pesos);
+        const gap = 160, rotW = cols.map(c => medir(c[0].toUpperCase() + ':'));
+        const fixos = cols.reduce((s, c, i) => s + rotW[i] + (c[3] ? c[3] * 20 : 0), 0) + gap * (cols.length - 1);
+        const pesos = cols.reduce((s, c) => s + (c[3] ? 0 : (c[2] || 1)), 0), livre = Math.max(600, TW - fixos), lg = [], cells = [];
+        cols.forEach((c, i) => { const vw = c[3] ? c[3] * 20 : Math.floor(livre * (c[2] || 1) / pesos);
             lg.push(rotW[i], vw); cells.push(cel(par(run(c[0].toUpperCase() + ':', { size: S_ROT })), rotW[i]),
                 cel(par(run(c[1], { color: AZ }), { al: c[3] ? AlignmentType.CENTER : undefined }), vw, { b: { ...SEM, bottom: fina } }));
-            if (i < cols.length - 1) { lg.push(gap); cells.push(cel(par(run('')), gap)); }
-        });
-        const soma = lg.reduce((a, b) => a + b, 0); lg[lg.length - 1] += TW - soma;
-        return [tabela([new TableRow({ children: cells })], lg), espaco(1)];
+            if (i < cols.length - 1) { lg.push(gap); cells.push(cel(par(run('')), gap)); } });
+        lg[lg.length - 1] += TW - lg.reduce((a, b) => a + b, 0);
+        add(tabela([new TableRow({ children: cells })], lg), espaco(1));
     }
     function caixa(tit, itens) {
         const w = Math.floor(TW / 4), cols = [w, w, w, TW - 3 * w];
@@ -998,123 +1366,84 @@ async function gerarDOCX() {
             const bd = { top: NADA, bottom: r === 2 ? grossa : NADA, left: c === 0 ? grossa : NADA, right: c === 3 ? grossa : NADA };
             return cel(par([new TextRun({ text: it[0] ? '☒ ' : '☐ ', font: 'Segoe UI Symbol', size: S_CHK + 2, color: it[0] ? AZ : '000000' }),
                 run(it[2] ? (it[1] || '________________') : it[1], { size: S_CHK, color: it[2] && it[1] ? AZ : '000000' })]), cols[c], { va: VerticalAlign.CENTER, b: bd }); }) }));
-        return [tabela(linhas, cols, { b: { top: grossa, bottom: grossa, left: grossa, right: grossa, insideHorizontal: NADA, insideVertical: NADA } }), espaco(6)];
+        add(tabela(linhas, cols, { top: grossa, bottom: grossa, left: grossa, right: grossa, insideHorizontal: NADA, insideVertical: NADA }), espaco(6));
     }
-    function obs(texto) {
-        const rw = medir('OBS:', 8.5), vw = TW - rw;
-        const ls = (texto || '').split('\n'); while (ls.length < 3) ls.push('');
-        return [tabela(ls.map((l, i) => new TableRow({ children: [cel(par(run(i ? '' : 'OBS:', { size: S_ROT })), rw, { va: VerticalAlign.TOP }), cel(par(run(l, { color: AZ })), vw, { b: { ...SEM, bottom: fina } })] })), [rw, vw])];
+    function caixaTexto(rot, texto, min) {
+        const r = rot.toUpperCase() + ':', rw = medir(r), vw = TW - rw, ls = String(texto || '').split('\n'); while (ls.length < min) ls.push('');
+        add(tabela(ls.map((l, i) => new TableRow({ children: [cel(par(run(i ? '' : r, { size: S_ROT })), rw, { va: VerticalAlign.TOP }), cel(par(run(l, { color: AZ })), vw, { b: { ...SEM, bottom: fina } })] })), [rw, vw]), espaco(2));
     }
-    const quebraPag = () => new Paragraph({ children: [], pageBreakBefore: true });
-
-    const corpo = [];
-    corpo.push(titulo('Ficha de Vistoria – Áreas Urbanas'), espaco(4));
-    corpo.push(...linha([['Nome do projeto', v('nome_projeto')]]));
-    corpo.push(...linha([['Referência cadastral', v('referencia_cadastral'), 1], ['Data', dataBR(v('data_vistoria')), 0, 1500]]));
-    corpo.push(...linha([['Nome do vistoriador', v('nome_vistoriador')]]));
-    corpo.push(titulo('Dados do Imóvel'), espaco(4));
-    corpo.push(...linha([['CEP', v('cep_imovel'), 0, 1300], ['Endereço do imóvel', v('endereco_imovel'), 1]]));
-    corpo.push(...linha([['Bairro', v('bairro_imovel'), 1], ['Município', v('municipio_imovel'), 1], ['Estado', v('estado_imovel'), 0, 600], ['País', v('pais_imovel'), 0, 1100]]));
-    corpo.push(...linha([['Coordenadas (lat/long)', v('coordenadas')]]));
-    corpo.push(...linha([['Área do terreno', comUn('area_terreno', 'm²')], ['Testada', comUn('testada', 'm')], ['Lote', v('lote')], ['Quadra', v('quadra')]]));
-    corpo.push(...linha([['Topografia', v('topografia')], ['Consistência do solo', v('consistencia_solo')]]));
-    corpo.push(...linha([['Córrego/Rio/Ribeirão', v('corrego')], ['Faixa de servidão', v('faixa_servidao')]]));
-    corpo.push(...linha([['Matrícula/Transcrição', v('matricula')], ['Relação de fotos', relacaoFotos()]]));
-    corpo.push(...linha([['Utilização do imóvel', v('utilizacao_imovel')]]));
-    corpo.push(par(run('FAVOR DESCREVER AS BENFEITORIAS ATINGIDAS NA SEGUNDA FOLHA (FICHA DE BENFEITORIAS)', { bold: true, size: S_ROT }), { depois: 120 }));
-    corpo.push(...caixa('DADOS CADASTRAIS DO LOCAL', [
-        [v('cad_agua'),'Fornecimento de Água'],[v('cad_luz'),'Luz Domiciliar'],[v('cad_iluminacao'),'Iluminação Pública'],
-        [v('cad_telefone'),'Telefone'],[v('cad_pavimentacao'),'Pavimentação'],[v('cad_guias'),'Guias'],
-        [v('cad_sarjetas'),'Sarjetas'],[v('cad_esgoto'),'Esgoto'],[v('cad_onibus'),'Ônibus Próximo'],
-        [v('cad_trem'),'Trem'],[v('cad_metro'),'Metrô'],[v('cad_outro'), v('cad_outro_txt'), true]]));
-    corpo.push(...caixa('DOCUMENTOS ANEXOS', [
-        [v('doc_registro'),'Registro do imóvel'],[v('doc_compra_venda'),'Doc. de compra e venda'],[v('doc_escritura'),'Planta da Escritura'],
-        [v('doc_fotografica') || fotos.length > 0,'Doc. Fotográfica'],[v('doc_estimativa'),'Estimativa de valor'],[v('doc_levantamento'),'Planta de Levantamento'],
-        [v('doc_planta_remanescente'),'Planta do remanescente'],[v('doc_memorial_desc'),'Memorial descritivo'],[v('doc_memorial_remanesc'),'Memorial do remanesc.'],
-        [v('doc_incra'),'INCRA'],[v('doc_iptu'),'IPTU'],[v('doc_outro'), v('doc_outro_txt'), true]]));
-    corpo.push(titulo('Dados do Proprietário'), espaco(4));
-    corpo.push(...linha([['Nome do proprietário', v('nome_proprietario')]]));
-    corpo.push(...linha([['RG', v('rg_proprietario')], ['CPF/CNPJ', v('cpf_proprietario')], ['Nacionalidade', v('nacionalidade_proprietario')]]));
-    corpo.push(...linha([['Profissão', v('profissao_proprietario'), 1.6], ['Estado civil', v('estado_civil_proprietario')]]));
-    corpo.push(...linha([['Vínculo com imóvel', v('vinculo_imovel')]]));
-    corpo.push(...linha([['CEP', v('cep_proprietario'), 0, 1300], ['Endereço do proprietário', v('endereco_proprietario'), 1]]));
-    corpo.push(...linha([['Bairro', v('bairro_proprietario'), 1], ['Município', v('municipio_proprietario'), 1], ['Estado', v('estado_proprietario'), 0, 600], ['País', v('pais_proprietario'), 0, 1100]]));
-    corpo.push(...linha([['Nome do cônjuge', v('nome_conjuge')]]));
-    corpo.push(...linha([['RG', v('rg_conjuge')], ['CPF', v('cpf_conjuge')], ['Nacionalidade', v('nacionalidade_conjuge')]]));
-    corpo.push(...linha([['Profissão', v('profissao_conjuge')], ['Telefone', v('telefone_proprietario')]]));
-    corpo.push(...linha([['E-mail', v('email_proprietario')], ['E-mail', v('email_proprietario_2')]]));
-    corpo.push(...obs(v('observacoes')));
-
-    if (v('benf_ativa')) {
-        corpo.push(quebraPag(), titulo('Ficha de Benfeitorias'), espaco(4));
-        corpo.push(...linha([['Nome do projeto', v('nome_projeto')]]));
-        corpo.push(...linha([['Referência cadastral', v('referencia_cadastral'), 1], ['Data', dataBR(v('data_vistoria')), 0, 1500]]));
-        corpo.push(...linha([['Endereço do imóvel', v('endereco_imovel')]]));
-        const cab = ['Nº', 'DESCRIÇÃO DA BENFEITORIA', 'ÁREA/QTDE', 'PADRÃO', 'CONSERVAÇÃO', 'IDADE', 'ATINGIDA', 'FOTOS'];
-        const cw = [450, 0, 1150, 1150, 1450, 750, 1050, 850]; cw[1] = TW - cw.reduce((a, b) => a + b, 0);
-        const bT = { top: fina, bottom: fina, left: fina, right: fina };
-        const linhasB = [new TableRow({ tableHeader: true, children: cab.map((t, i) => cel(par(run(t, { bold: true, size: 15 }), { al: AlignmentType.CENTER }), cw[i], { b: bT, sh: 'EAEEF5', va: VerticalAlign.CENTER })) })];
-        (benf.length ? benf : [benfVazia()]).forEach((b, i) => {
-            const vals = [String(i + 1).padStart(2, '0'), [b.desc, b.obs && '(' + b.obs + ')'].filter(Boolean).join(' '), b.qtd ? `${b.qtd} ${b.un}` : '', b.padrao, b.conserv, b.idade ? b.idade + ' anos' : '', b.ating, b.fotosRef];
-            linhasB.push(new TableRow({ children: vals.map((t, k) => cel(par(run(t, { size: S_CHK, color: AZ }), { al: k === 1 ? undefined : AlignmentType.CENTER }), cw[k], { b: bT, va: VerticalAlign.CENTER })) }));
-        });
-        corpo.push(tabela(linhasB, cw, { b: { top: fina, bottom: fina, left: fina, right: fina, insideHorizontal: fina, insideVertical: fina } }), espaco(8));
-        corpo.push(...obs(atual?.benfObs || ''));
+    function listaSN(itens) {
+        const wq = TW - 3 * 900, cw = [wq, 900, 900, 900];
+        const linhas = [new TableRow({ tableHeader: true, children: ['ITEM', 'SIM', 'NÃO', 'N/A'].map((t, k) => cel(par(run(t, { bold: true, size: 15 }), { al: k ? AlignmentType.CENTER : undefined }), cw[k], { b: TODAS, sh: 'EAEEF5', va: VerticalAlign.CENTER })) })];
+        itens.forEach(([q, r]) => linhas.push(new TableRow({ cantSplit: true, children: [cel(par(run(q, { size: S_CHK })), wq, { b: TODAS, va: VerticalAlign.CENTER }),
+            ...['Sim', 'Não', 'N/A'].map((o, k) => cel(par(new TextRun({ text: r === o ? '☒' : '☐', font: 'Segoe UI Symbol', size: 20, color: r === o ? AZ : '000000' }), { al: AlignmentType.CENTER }), cw[k + 1], { b: TODAS, va: VerticalAlign.CENTER }))] })));
+        add(tabela(linhas, cw, { ...TODAS, insideHorizontal: fina, insideVertical: fina }), espaco(6));
     }
-
-    if (fotos.length) {
-        const id = [v('nome_projeto') && 'PROJETO: ' + v('nome_projeto'), v('referencia_cadastral') && 'REF. CADASTRAL: ' + v('referencia_cadastral'), v('data_vistoria') && 'DATA: ' + dataBR(v('data_vistoria'))].filter(Boolean).join('     ');
-        const meia = Math.floor(TW / 2), MAXW = 318, MAXH = 330;
-        const bF = { top: fina, bottom: fina, left: fina, right: fina };
-        const dims = src => new Promise(res => { const i = new Image(); i.onload = () => res([i.width, i.height]); i.src = src; });
+    function tab(cab, rows) {
+        const w0 = 3000, wc = Math.floor((TW - w0) / (cab.length - 1)), cw = [w0, ...cab.slice(1).map(() => wc)]; cw[cw.length - 1] += TW - cw.reduce((a, b) => a + b, 0);
+        const L = [new TableRow({ tableHeader: true, children: cab.map((t, k) => cel(par(run(t, { bold: true, size: 15 }), { al: AlignmentType.CENTER }), cw[k], { b: TODAS, sh: 'EAEEF5', va: VerticalAlign.CENTER })) }),
+            ...rows.map(rw => new TableRow({ cantSplit: true, children: rw.map((t, k) => cel(par(run(t, { size: 15, bold: k === 0, color: k ? AZ : '000000' }), { al: k ? AlignmentType.CENTER : undefined }), cw[k], { b: TODAS, va: VerticalAlign.CENTER })) }))];
+        add(tabela(L, cw, { ...TODAS, insideHorizontal: fina, insideVertical: fina }), espaco(6));
+    }
+    async function imagem(src, altRel) {
+        const [w, h] = await dimsImg(src), e = Math.min(690 / w, 900 * altRel / h);
+        add(par(new ImageRun({ type: src.startsWith('data:image/png') ? 'png' : 'jpg', data: b64bytes(src), transformation: { width: Math.round(w * e), height: Math.round(h * e) } }), { al: AlignmentType.CENTER, depois: 120 }));
+    }
+    async function fotosDocx() {
+        const id = idLinha(), meia = Math.floor(TW / 2), bF = TODAS;
         for (let p = 0; p < fotos.length; p += 4) {
-            corpo.push(quebraPag(), titulo(p ? 'Relação de Fotos (continuação)' : 'Relação de Fotos'));
-            if (id) corpo.push(par(run(id, { size: S_ROT }), { antes: 60, depois: 60 }));
-            const linhasF = [];
-            for (let r = 0; r < 2 && p + r * 2 < fotos.length; r++) {
-                const cells = [];
-                for (let c = 0; c < 2; c++) {
-                    const k = p + r * 2 + c;
+            quebrar = true; titulo(p ? 'Relação de Fotos (continuação)' : 'Relação de Fotos');
+            if (id) add(par(run(id, { size: S_ROT }), { antes: 60, depois: 60 }));
+            const L = [];
+            for (let r = 0; r < 2 && p + r * 2 < fotos.length; r++) { const cells = [];
+                for (let c = 0; c < 2; c++) { const k = p + r * 2 + c;
                     if (k >= fotos.length) { cells.push(cel(par(run('')), c ? TW - meia : meia)); continue; }
-                    const f = fotos[k], [w, h] = await dims(f.src), e = Math.min(MAXW / w, MAXH / h);
-                    cells.push(cel([
-                        par(new ImageRun({ type: 'jpg', data: b64bytes(f.src), transformation: { width: Math.round(w * e), height: Math.round(h * e) } }), { al: AlignmentType.CENTER, antes: 40 }),
-                        par([run('FOTO ' + String(k + 1).padStart(2, '0'), { bold: true, size: S_ROT }), run(f.leg ? ' – ' + f.leg : '', { size: S_ROT, color: AZ })], { antes: 40, depois: 40 })
-                    ], c ? TW - meia : meia, { b: bF, va: VerticalAlign.TOP }));
-                }
-                linhasF.push(new TableRow({ cantSplit: true, children: cells }));
-            }
-            corpo.push(tabela(linhasF, [meia, TW - meia], { b: { ...SEM, insideHorizontal: NADA, insideVertical: NADA } }));
+                    const f = fotos[k], [w, h] = await dimsImg(f.src), e = Math.min(318 / w, 330 / h);
+                    cells.push(cel([par(new ImageRun({ type: 'jpg', data: b64bytes(f.src), transformation: { width: Math.round(w * e), height: Math.round(h * e) } }), { al: AlignmentType.CENTER, antes: 40 }),
+                        par([run('FOTO ' + nn(k), { bold: true, size: S_ROT }), run(f.leg ? ' – ' + f.leg : '', { size: S_ROT, color: AZ })], { antes: 40, depois: 40 })], c ? TW - meia : meia, { b: bF, va: VerticalAlign.TOP })); }
+                L.push(new TableRow({ cantSplit: true, children: cells })); }
+            add(tabela(L, [meia, TW - meia]));
         }
     }
-
-    let cabecalho;
-    if (logo) {
-        const [lw, lh] = await new Promise(res => { const i = new Image(); i.onload = () => res([i.width, i.height]); i.src = logo; });
-        cabecalho = new Header({ children: [par(new ImageRun({ type: logo.startsWith('data:image/png') ? 'png' : 'jpg', data: b64bytes(logo), transformation: { width: Math.round(42 * lw / lh), height: 42 } }))] });
+    for (const b of await montarDoc()) {
+        if (b.t === 'pag') quebrar = true;
+        else if (b.t === 'tit') titulo(b.s);
+        else if (b.t === 'lin') linha(b.cols);
+        else if (b.t === 'nota') add(par(run(b.s, { bold: true, size: S_ROT }), { antes: 40, depois: 80 }));
+        else if (b.t === 'esp') add(espaco(2));
+        else if (b.t === 'chk') caixa(b.tit, b.itens);
+        else if (b.t === 'txt') caixaTexto(b.rot, b.s, b.min);
+        else if (b.t === 'sn') listaSN(b.itens);
+        else if (b.t === 'tab') tab(b.cab, b.rows);
+        else if (b.t === 'img') await imagem(b.src, b.alt);
+        else if (b.t === 'fotos') await fotosDocx();
     }
-    const doc = new Document({
-        creator: 'Itazi Engenharia – Ficha de Vistoria', title: 'Ficha de Vistoria – Áreas Urbanas',
+    let cabecalho;
+    if (logo) { const [lw, lh] = await dimsImg(logo);
+        cabecalho = new Header({ children: [par(new ImageRun({ type: logo.startsWith('data:image/png') ? 'png' : 'jpg', data: b64bytes(logo), transformation: { width: Math.round(42 * lw / lh), height: 42 } }))] }); }
+    const doc = new Document({ creator: 'Itazi Engenharia – Ficha de Vistoria', title: RUR() ? 'Ficha de Vistoria – Áreas Rurais' : 'Ficha de Vistoria – Áreas Urbanas',
         styles: { default: { document: { run: { font: 'Arial', size: S_VAL } } } },
         sections: [{ properties: { page: { size: { width: 11906, height: 16838 }, margin: { top: 1300, bottom: 680, left: 737, right: 737, header: 400 } } },
-                     headers: cabecalho ? { default: cabecalho } : undefined, children: corpo }]
-    });
+            headers: cabecalho ? { default: cabecalho } : undefined, children: corpo }] });
     return await Packer.toBlob(doc);
 }
 
 /* ===================== PLANILHAS (.CSV ";") ===================== */
-const csvCel = c => { let t = String(c ?? ''); if (/^[=+@]/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; };   // evita que o Excel trate texto como fórmula
-function camposComRotulo() {
+const csvCel = c => { let t = String(c ?? ''); if (/^[=+@]/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; };
+function camposComRotulo(modeloFiltro) {
     const out = [];
-    form.querySelectorAll('fieldset').forEach(fs => {
-        const secao = fs.querySelector('legend')?.textContent.trim() || '';
-        fs.querySelectorAll('input[name], select[name], textarea[name]').forEach(el => {
-            if (el.name.endsWith('_outro_txt') || el.name === 'benf_ativa') return;
-            let rot = el.dataset.rot || el.closest('.form-group')?.querySelector('label')?.textContent.replace(':','').trim() || el.closest('.checkbox-item')?.textContent.trim() || el.name;
-            if (el.name.endsWith('_outro')) rot = 'Outro';
-            if (el.dataset.un) rot += ` (${el.dataset.un})`;
-            out.push({ secao, nome: el.name, rot, tipo: el.type });
-        });
+    const txtM = node => { const su = node.querySelector('.so-urb'), sr = node.querySelector('.so-rur');
+        if (!su) return node.textContent; return modeloFiltro === 'rural' ? sr.textContent : modeloFiltro === 'urbana' ? su.textContent : su.textContent.replace(/:$/, '') + ' / ' + sr.textContent; };
+    form.querySelectorAll('input[name], select[name], textarea[name]').forEach(el => {
+        if (el.name.endsWith('_outro_txt') || ['benf_ativa', 'croqui_ativo', 'carimbo_data', 'carimbo_coord', 'modelo'].includes(el.name)) return;
+        if (modeloFiltro === 'rural' && el.closest('.so-urb')) return; if (modeloFiltro === 'urbana' && el.closest('.so-rur')) return;
+        const leg = el.closest('fieldset')?.querySelector('legend'), secao = leg ? txtM(leg).trim() : '';
+        const lab = el.closest('.form-group')?.querySelector(':scope > label');
+        let rot = el.dataset.rot || (lab ? txtM(lab) : (el.closest('.checkbox-item')?.textContent || el.name));
+        rot = rot.trim().replace(/:$/, '');
+        if (el.name.endsWith('_outro')) rot = 'Outro';
+        if (el.dataset.un) rot += ` (${el.dataset.un})`;
+        out.push({ secao, nome: el.name, rot, tipo: el.type });
     });
     return out;
 }
@@ -1122,26 +1451,37 @@ function valorCampo(c, campos, nFotos) {
     const val = campos[c.nome];
     if (c.tipo === 'checkbox') { if (c.nome.endsWith('_outro')) return val ? 'Sim – ' + (campos[c.nome + '_txt'] || '') : 'Não'; return val ? 'Sim' : 'Não'; }
     if (c.nome === 'data_vistoria') return dataBR(val);
-    if (c.nome === 'relacao_fotos' && !val && nFotos) return nFotos === 1 ? 'Foto 01 (anexa)' : `Fotos 01 a ${String(nFotos).padStart(2,'0')} (anexas)`;
+    if (/^relacao_fotos/.test(c.nome) && !val && nFotos) return nFotos === 1 ? 'Foto 01 (anexa)' : `Fotos 01 a ${nn(nFotos - 1)} (anexas)`;
     return val ?? '';
 }
 async function exportEXCEL() {
     await salvarAgora();
-    const linhas = [['Seção', 'Campo', 'Valor']];
-    camposComRotulo().forEach(c => linhas.push([c.secao, c.rot, valorCampo(c, atual.campos, fotos.length)]));
-    if (v('benf_ativa')) benf.forEach((b, i) => linhas.push(['Ficha de Benfeitorias', 'Benfeitoria ' + String(i+1).padStart(2,'0'),
-        [b.desc, b.qtd && b.qtd + ' ' + b.un, b.padrao, b.conserv, b.idade && b.idade + ' anos', b.ating && 'Atingida: ' + b.ating, b.fotosRef && 'Fotos ' + b.fotosRef, b.obs].filter(Boolean).join(' | ')]));
-    fotos.forEach((f, i) => linhas.push(['Registro Fotográfico', 'Foto ' + String(i+1).padStart(2,'0'), f.leg]));
+    const m = modelo(), linhas = [['Seção', 'Campo', 'Valor'], ['Geral', 'Modelo', m === 'rural' ? 'Rural' : 'Urbana']];
+    camposComRotulo(m).forEach(c => linhas.push([c.secao, c.rot, valorCampo(c, atual.campos, fotos.length)]));
+    if (m === 'rural') linhas.push(['Dados do Imóvel', 'Distância total (km)', fmtNum(totalKm(), 1)]);
+    if (v('benf_ativa')) benf.forEach((b, i) => linhas.push(['Benfeitorias', 'Nº ' + nn(i), [b.tipo, caracteristicas(b), b.desc, b.fotosRef && 'Fotos ' + b.fotosRef].filter(Boolean).join(' | ')]));
+    listaCK().forEach(([id, txt]) => linhas.push(['Check list', txt, valorCK(id)]));
+    if (v('croqui_ativo')) croquis.forEach((c, i) => linhas.push(['Croqui', 'Croqui ' + nn(i), [c.larg && 'Largura ' + c.larg + ' m', c.comp && 'Comprimento ' + c.comp + ' m',
+        ...(c.amarr || []).filter(a => a.ref || a.dist).map((a, k) => `Amarração ${k + 1}: ${a.ref} ${a.dist ? a.dist + ' m' : ''}`.trim()), c.obs].filter(Boolean).join(' | ')]));
+    fotos.forEach((f, i) => linhas.push(['Registro Fotográfico', 'Foto ' + nn(i), [f.leg, f.lat != null ? `Lat ${fmtCoord(f.lat)} Long ${fmtCoord(f.lon)} (${f.origem === 'foto' ? 'da foto' : 'da ficha'})` : ''].filter(Boolean).join(' | ')]));
     baixar(new Blob(['\ufeff' + linhas.map(l => l.map(csvCel).join(';')).join('\r\n')], { type: 'text/csv;charset=utf-8' }), nomeArquivo('csv'));
 }
 async function exportProjetoCSV() {
     await salvarAgora();
     const proj = v('nome_projeto');
-    const todas = (await dbTodas()).filter(f => !proj || (f.campos?.nome_projeto || '') === proj)
+    const todas = (await dbTodas()).map(migrar).filter(f => !proj || (f.campos?.nome_projeto || '') === proj)
         .sort((a, b) => String(a.campos?.referencia_cadastral || '').localeCompare(String(b.campos?.referencia_cadastral || ''), 'pt-BR', { numeric: true }));
-    const cs = camposComRotulo();
-    const cab = [...cs.map(c => c.secao === 'Informações Gerais' || c.secao === 'Dados do Imóvel' ? c.rot : `${c.rot} (${c.secao})`), 'Nº de benfeitorias', 'Nº de fotos'];
-    const linhas = [cab, ...todas.map(f => [...cs.map(c => valorCampo(c, f.campos || {}, (f.fotos || []).length)), f.campos?.benf_ativa ? (f.benf || []).length : 0, (f.fotos || []).length])];
+    const cs = camposComRotulo(null);
+    const ckIds = [...new Map([...listaCK(), ['distancias', 'Distâncias até o centro urbano preenchidas.']].map(x => [x[0], x])).values()];
+    const cab = ['Modelo', ...cs.map(c => `${c.rot} (${c.secao})`), ...ckIds.map(([, t]) => 'Check list – ' + t), 'Nº de benfeitorias', 'Nº de fotos', 'Nº de croquis'];
+    const ckv = (f, id) => {
+        const cr = f.croquis || [];
+        if (id === 'croqui') return !f.campos.croqui_ativo ? 'N/A' : cr.some(c => c.desenho) ? 'Sim' : 'Não';
+        if (id === 'amarracao') return !f.campos.croqui_ativo ? 'N/A' : cr.some(c => (c.amarr || []).filter(a => a.ref && num(a.dist) > 0).length >= 2) ? 'Sim' : 'Não';
+        return (f.ck || {})[id] || '';
+    };
+    const linhas = [cab, ...todas.map(f => [f.campos.modelo === 'rural' ? 'Rural' : 'Urbana', ...cs.map(c => valorCampo(c, f.campos || {}, (f.fotos || []).length)),
+        ...ckIds.map(([id]) => ckv(f, id)), f.campos?.benf_ativa ? (f.benf || []).length : 0, (f.fotos || []).length, f.campos?.croqui_ativo ? (f.croquis || []).length : 0])];
     baixar(new Blob(['\ufeff' + linhas.map(l => l.map(csvCel).join(';')).join('\r\n')], { type: 'text/csv;charset=utf-8' }),
         ('Projeto_' + (proj || 'todas_as_fichas') + '_' + hojeISO()).replace(/[^\w\-]+/g, '_') + '.csv');
     toast(`Planilha com ${todas.length} ficha(s)` + (proj ? ` do projeto ${proj}` : ''));
@@ -1156,10 +1496,10 @@ function baixar(blob, nome) {
     montarBotoesNA();
     if (!window.indexedDB) { alert('Este navegador não permite salvar fichas (modo anônimo?). Abra no Chrome ou Safari normal.'); return; }
     await abrirDB();
-    try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) {}   // pede ao navegador para não apagar as fichas
-    await carregarLogo();
+    try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) {}
+    await Promise.all([carregarLogo(), carregarCatalogo()]);
     let todas = (await dbTodas()).sort((a, b) => (b.alterada || b.criada || 0) - (a.alterada || a.criada || 0));
-    try { const s = localStorage.getItem('ficha_vistoria_urbana'); if (s && !todas.length) { const o = JSON.parse(s); const f = fichaVazia(); f.campos = o.campos || {}; f.fotos = o.fotos || []; await dbPut(f); todas = [f]; localStorage.removeItem('ficha_vistoria_urbana'); } } catch (e) {}
+    try { const s = localStorage.getItem('ficha_vistoria_urbana'); if (s && !todas.length) { const o = JSON.parse(s); const f = fichaVazia(); f.campos = { ...f.campos, ...(o.campos || {}) }; f.fotos = o.fotos || []; await dbPut(f); todas = [f]; localStorage.removeItem('ficha_vistoria_urbana'); } } catch (e) {}
     if (!todas.length) { const f = fichaVazia(); await dbPut(f); todas = [f]; }
     aplicar(todas[0]); listarFichas();
     verificarCameraFechada();

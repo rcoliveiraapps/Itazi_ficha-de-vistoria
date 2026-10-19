@@ -1,0 +1,262 @@
+[
+ {
+  "tipo": "Cerca",
+  "campos": [
+   "Tipo de Mourão",
+   "Espaçamento (m)",
+   "Escoramento",
+   "Distância entre Escoras (m)",
+   "Número de Fios",
+   "Tipo de Fio",
+   "Distância Esticadores (m)",
+   "Distância Balancins (m)"
+  ]
+ },
+ {
+  "tipo": "Cerca tipo Curral",
+  "campos": [
+   "Tipo de Mourão",
+   "Espaçamento (m)",
+   "Quantidade de Ripas",
+   "Material das Ripas"
+  ]
+ },
+ {
+  "tipo": "Alambrado",
+  "campos": [
+   "Tipo de Mourão",
+   "Espaçamento (m)",
+   "Escoramento",
+   "Altura da Tela (m)",
+   "Altura Mureta Base (m)",
+   "Número de Fios Sup."
+  ]
+ },
+ {
+  "tipo": "Muro",
+  "campos": [
+   "Altura (m)",
+   "Comprimento (m)",
+   "Espessura (m)",
+   "Tipo de Bloco",
+   "Tipo de Fundação",
+   "Revestimento/Pintura",
+   "Distância entre pilares"
+  ]
+ },
+ {
+  "tipo": "Mureta",
+  "campos": [
+   "Altura (m)",
+   "Comprimento (m)",
+   "Espessura (m)",
+   "Tipo de Bloco",
+   "Revestimento/Pintura"
+  ]
+ },
+ {
+  "tipo": "Piso de Concreto",
+  "campos": [
+   "Espessura (cm)",
+   "Tipo de Base",
+   "Área (m²)",
+   "Meio Fio (Guia)"
+  ]
+ },
+ {
+  "tipo": "Piso Intertravado / Paralelepípedo",
+  "campos": [
+   "Espessura (cm)",
+   "Tipo de Base",
+   "Área (m²)",
+   "Meio Fio (Guia)"
+  ]
+ },
+ {
+  "tipo": "Asfalto",
+  "campos": [
+   "Espessura (cm)",
+   "Tipo de Base",
+   "Área (m²)"
+  ]
+ },
+ {
+  "tipo": "Piso Cerâmico / Madeira",
+  "campos": [
+   "Área (m²)",
+   "Material"
+  ]
+ },
+ {
+  "tipo": "Pátio para Secar Café",
+  "campos": [
+   "Área (m²)",
+   "Tipo de Piso (Concreto/Asfalto/Terra)",
+   "Espessura (cm)"
+  ]
+ },
+ {
+  "tipo": "Portão",
+  "campos": [
+   "Largura (m)",
+   "Altura (m)",
+   "Material",
+   "Tipo de Abertura",
+   "Quantidade"
+  ]
+ },
+ {
+  "tipo": "Porteira",
+  "campos": [
+   "Largura (m)",
+   "Altura (m)",
+   "Material",
+   "Quantidade"
+  ]
+ },
+ {
+  "tipo": "Porta",
+  "campos": [
+   "Largura (m)",
+   "Altura (m)",
+   "Material",
+   "Tipo de Abertura",
+   "Quantidade"
+  ]
+ },
+ {
+  "tipo": "Janela",
+  "campos": [
+   "Largura (m)",
+   "Altura (m)",
+   "Material",
+   "Tipo de Abertura",
+   "Quantidade"
+  ]
+ },
+ {
+  "tipo": "Cobertura",
+  "campos": [
+   "Tipo de Telha",
+   "Vão da Estrutura (m)",
+   "Material da Estrutura",
+   "Área (m²)"
+  ]
+ },
+ {
+  "tipo": "Embarcadouro",
+  "campos": [
+   "Comprimento (m)",
+   "Largura (m)",
+   "Altura (m)",
+   "Material"
+  ]
+ },
+ {
+  "tipo": "Paisagismo (Árvores / Arbustos)",
+  "campos": [
+   "Tipo de Muda / Planta",
+   "Altura da Muda (m)",
+   "Quantidade"
+  ]
+ },
+ {
+  "tipo": "Grama / Pastagem",
+  "campos": [
+   "Tipo de Grama / Pasto",
+   "Área Cultivada (m²)"
+  ]
+ },
+ {
+  "tipo": "Culturas (Plantações)",
+  "campos": [
+   "Espaçamento do Cultivo",
+   "Área Cultivada (m²)"
+  ]
+ },
+ {
+  "tipo": "Piscina",
+  "campos": [
+   "Volume (m³)",
+   "Profundidade (m)",
+   "Revestimento / Material",
+   "Área do Piso do Entorno",
+   "Tipo do Piso do Entorno"
+  ]
+ },
+ {
+  "tipo": "Tanque / Caixa D'Água",
+  "campos": [
+   "Volume (m³)",
+   "Diâmetro / Largura (m)",
+   "Profundidade (m)",
+   "Material"
+  ]
+ },
+ {
+  "tipo": "Poço",
+  "campos": [
+   "Diâmetro (m)",
+   "Profundidade (m)",
+   "Revestimento (Material)",
+   "Laje de Fechamento (m²)"
+  ]
+ },
+ {
+  "tipo": "Fossa Séptica",
+  "campos": [
+   "Diâmetro (m)",
+   "Profundidade (m)",
+   "Volume (m³)"
+  ]
+ },
+ {
+  "tipo": "Guias / Sarjetas / Canaletas",
+  "campos": [
+   "Comprimento (m)",
+   "Material (Alvenaria/Concreto)"
+  ]
+ },
+ {
+  "tipo": "Poste",
+  "campos": [
+   "Tipo de Poste (Aço/Concreto)",
+   "Altura do Poste (m)",
+   "Quantidade"
+  ]
+ },
+ {
+  "tipo": "Entrada de Energia",
+  "campos": [
+   "Potência / Carga",
+   "Tipo de Poste",
+   "Altura do Poste (m)",
+   "Quantidade"
+  ]
+ },
+ {
+  "tipo": "Refletor / Iluminação",
+  "campos": [
+   "Tipo de Luminária / Potência",
+   "Tipo de Poste",
+   "Altura do Poste (m)",
+   "Quantidade"
+  ]
+ },
+ {
+  "tipo": "Terraplenagem / Escavação",
+  "campos": [
+   "Volume (m³)",
+   "Profundidade (m)",
+   "Tipo de Solo"
+  ]
+ },
+ {
+  "tipo": "Demolição",
+  "campos": [
+   "Área (m²) ou Volume (m³)",
+   "Tipo de Material",
+   "Reaproveitamento"
+  ]
+ }
+]
