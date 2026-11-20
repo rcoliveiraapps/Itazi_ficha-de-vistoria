@@ -150,7 +150,7 @@
             <div class="form-row">
                 <div class="form-group cep"><label>CEP:</label><input type="text" name="cep_imovel" data-mask="cep" data-cep="imovel" inputmode="numeric" placeholder="00000-000">
                     <span class="dica" id="cepInfo_imovel">Preenche o endereço automaticamente</span></div>
-                <div class="form-group" style="flex:3"><label><span class="so-urb">ENDEREÇO DO IMÓVEL:</span><span class="so-rur">ENDEREÇO / LOCALIZAÇÃO DO IMÓVEL:</span></label><input type="text" name="endereco_imovel" placeholder="Rua / avenida / rodovia, número"></div>
+                <div class="form-group" style="flex:3"><label><span class="so-urb">ENDEREÇO DO IMÓVEL:</span><span class="so-rur">ENDEREÇO / LOCALIZAÇÃO DO IMÓVEL:</span></label><input type="text" name="endereco_imovel" placeholder="Rua / avenida / rodovia"></div><div class="form-group" style="flex:0 0 110px;min-width:100px"><label>NÚMERO:</label><input type="text" name="numero_imovel" placeholder="Nº / s/n"></div>
             </div>
             <div class="form-row">
                 <div class="form-group"><label>BAIRRO:</label><input type="text" name="bairro_imovel"></div>
@@ -296,11 +296,13 @@
             </div>
             <div class="form-row">
                 <div class="form-group"><label>PROFISSÃO (CÔNJUGE):</label><input type="text" name="profissao_conjuge"></div>
-                <div class="form-group"><label>TELEFONE:</label><input type="tel" name="telefone_proprietario" data-mask="fone" inputmode="numeric"></div>
             </div>
-            <div class="form-row so-urb">
-                <div class="form-group"><label>E-MAIL:</label><input type="email" name="email_proprietario"></div>
+            <div class="form-row">
+                <div class="form-group"><label>TELEFONE 1:</label><input type="tel" name="telefone_proprietario" data-mask="fone" inputmode="numeric"></div>
+                <div class="form-group"><label>TELEFONE 2:</label><input type="tel" name="telefone_proprietario_2" data-mask="fone" inputmode="numeric"></div>
+                <div class="form-group"><label>TELEFONE 3:</label><input type="tel" name="telefone_proprietario_3" data-mask="fone" inputmode="numeric"></div>
                 <div class="form-group"><label>CELULAR:</label><input type="tel" name="celular_proprietario" data-mask="fone" inputmode="numeric"></div>
+                <div class="form-group"><label>E-MAIL:</label><input type="email" name="email_proprietario"></div>
             </div>
             <div class="form-row"><div class="form-group full"><label>OBSERVAÇÕES (OBS):</label><textarea name="observacoes"></textarea></div></div>
         </fieldset>
@@ -456,6 +458,7 @@ form.addEventListener('input', e => {
     if (/^dist_|^area_declarada/.test(el.name)) atualizarTotais();
     el.classList.remove('faltando');
     atualizarNA(el);
+    if (el.name === 'nome_conjuge') sincronizarConjugeNA(el.value === NA);
     autoSalvar();
 });
 form.addEventListener('change', async e => { e.target.classList.remove('faltando');
@@ -483,6 +486,14 @@ function atualizarNA(el) {
     if (el._na) el._na.classList.toggle('on', el.value === NA);
     const un = el.parentElement && el.parentElement.classList.contains('com-un') ? el.parentElement.querySelector('.un') : null;
     if (un) un.style.display = el.value === NA ? 'none' : '';
+}
+function sincronizarConjugeNA(ativar) {
+    ['rg_conjuge','cpf_conjuge','nacionalidade_conjuge','profissao_conjuge'].forEach(n => {
+        const el = form.elements[n]; if (!el) return;
+        if (ativar) el.value = NA;
+        else if (el.value === NA) el.value = '';
+        atualizarNA(el);
+    });
 }
 function totalKm() { return ['dist_asfalto','dist_terra','dist_servidao','dist_corregos'].reduce((s, n) => s + (num(v(n)) || 0), 0); }
 function atualizarTotais() {
@@ -1325,7 +1336,7 @@ async function montarDoc() {
     lin([['Nome do vistoriador', v('nome_vistoriador')]]);
     B.push({ t: 'esp' }); tit('Dados do Imóvel');
     if (r) lin([['Nome da fazenda/sítio/chácara', v('nome_fazenda')]]);
-    lin([['CEP', v('cep_imovel'), 0, 62], [r ? 'Endereço/localização' : 'Endereço do imóvel', v('endereco_imovel'), 1]]);
+    lin([['CEP', v('cep_imovel'), 0, 62], [r ? 'Endereço/localização' : 'Endereço do imóvel', v('endereco_imovel'), 1], ['Número', v('numero_imovel'), 0, 52]]);
     lin([['Bairro', v('bairro_imovel'), 1], ['Município', v('municipio_imovel'), 1], ['Estado', v('estado_imovel'), 0, 28], ['País', v('pais_imovel'), 0, 60]]);
     if (!r) {
         lin([['Coordenadas (lat/long)', v('coordenadas')]]);
@@ -1368,8 +1379,8 @@ async function montarDoc() {
     lin([['Bairro', v('bairro_proprietario'), 1], ['Município', v('municipio_proprietario'), 1], ['Estado', v('estado_proprietario'), 0, 28], ['País', v('pais_proprietario'), 0, 60]]);
     lin([['Nome do cônjuge', v('nome_conjuge')]]);
     lin([['RG', v('rg_conjuge')], ['CPF', v('cpf_conjuge')], ['Nacionalidade', v('nacionalidade_conjuge')]]);
-    lin([['Profissão', v('profissao_conjuge')], ['Telefone', v('telefone_proprietario')]]);
-    if (!r) lin([['E-mail', v('email_proprietario')], ['Celular', v('celular_proprietario')]]);
+    lin([['Profissão', v('profissao_conjuge')]]);
+    lin([['Telefone 1', v('telefone_proprietario')], ['Telefone 2', v('telefone_proprietario_2')], ['Telefone 3', v('telefone_proprietario_3')], ['Celular', v('celular_proprietario')], ['E-mail', v('email_proprietario')]]);
     caixaT('OBS', v('observacoes'), 3);
 
     if (v('benf_ativa')) {
