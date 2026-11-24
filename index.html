@@ -278,7 +278,7 @@
             <div class="form-row">
                 <div class="form-group cep"><label>CEP:</label><input type="text" name="cep_proprietario" data-mask="cep" data-cep="proprietario" inputmode="numeric" placeholder="00000-000">
                     <span class="dica" id="cepInfo_proprietario">Preenche o endereço automaticamente</span></div>
-                <div class="form-group" style="flex:3"><label>ENDEREÇO:</label><input type="text" name="endereco_proprietario" placeholder="Rua / avenida, número"></div>
+                <div class="form-group" style="flex:3"><label>ENDEREÇO:</label><input type="text" name="endereco_proprietario" placeholder="Rua / avenida"></div><div class="form-group" style="flex:0 0 110px;min-width:100px"><label>NÚMERO:</label><input type="text" name="numero_proprietario" placeholder="Nº / s/n"></div>
             </div>
             <div class="form-row">
                 <div class="form-group"><label>BAIRRO:</label><input type="text" name="bairro_proprietario"></div>
@@ -466,7 +466,7 @@ form.addEventListener('change', async e => { e.target.classList.remove('faltando
 ['cad','doc'].forEach(p => form.elements[p + '_outro_txt'].addEventListener('input', e => { form.elements[p + '_outro'].checked = !!e.target.value.trim(); }));
 $('mesmoEndereco').addEventListener('change', e => {
     if (!e.target.checked) return;
-    ['cep','endereco','bairro','municipio','estado','pais','ibge'].forEach(k => form.elements[k + '_proprietario'].value = form.elements[k + '_imovel'].value);
+    ['cep','endereco','numero','bairro','municipio','estado','pais','ibge'].forEach(k => form.elements[k + '_proprietario'].value = form.elements[k + '_imovel'].value);
     form.querySelectorAll('input').forEach(atualizarNA);
     $('cepInfo_proprietario').textContent = 'Copiado do imóvel';
     autoSalvar();
@@ -535,7 +535,7 @@ async function buscarCEP(grupo) {
         form.elements['ibge_' + grupo].value = j.ibge || '';
         const mudou = endEl.value !== endAntes && j.logradouro;
         info.className = 'dica ok'; info.textContent = `${j.localidade}/${j.uf}` + (j.ibge ? ` · IBGE ${j.ibge}` : '') + (mudou ? ' – complete o número' : '');
-        if (mudou) { endEl.focus(); endEl.setSelectionRange(endEl.value.length, endEl.value.length); }
+        if (mudou) { const numEl = form.elements['numero_' + grupo]; (numEl || endEl).focus(); if (!numEl) endEl.setSelectionRange(endEl.value.length, endEl.value.length); }
         autoSalvar();
     } catch (e) { ultimoCEP[grupo] = ''; info.className = 'dica erro'; info.textContent = 'Não foi possível consultar o CEP agora – preencha manualmente'; }
 }
@@ -1375,7 +1375,7 @@ async function montarDoc() {
     lin([['RG', v('rg_proprietario')], ['CPF/CNPJ', v('cpf_proprietario')], ['Nacionalidade', v('nacionalidade_proprietario')]]);
     lin([['Profissão', v('profissao_proprietario'), 1.6], ['Estado civil', v('estado_civil_proprietario')]]);
     lin([['Vínculo com imóvel', v('vinculo_imovel')]]);
-    lin([['CEP', v('cep_proprietario'), 0, 62], [r ? 'Endereço do proprietário' : 'Endereço', v('endereco_proprietario'), 1]]);
+    lin([['CEP', v('cep_proprietario'), 0, 62], [r ? 'Endereço do proprietário' : 'Endereço', v('endereco_proprietario'), 1], ['Número', v('numero_proprietario'), 0, 52]]);
     lin([['Bairro', v('bairro_proprietario'), 1], ['Município', v('municipio_proprietario'), 1], ['Estado', v('estado_proprietario'), 0, 28], ['País', v('pais_proprietario'), 0, 60]]);
     lin([['Nome do cônjuge', v('nome_conjuge')]]);
     lin([['RG', v('rg_conjuge')], ['CPF', v('cpf_conjuge')], ['Nacionalidade', v('nacionalidade_conjuge')]]);
