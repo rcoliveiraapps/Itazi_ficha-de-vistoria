@@ -1451,7 +1451,7 @@ async function gerarPDF() {
     }).join('').replace(/\r/g, '');
     const larg = (s, f, t) => f.widthOfTextAtSize(limpa(s, f), t);
     const cabe = (s, f, t, w) => { s = limpa(s, f); if (f.widthOfTextAtSize(s, t) <= w) return s; while (s.length && f.widthOfTextAtSize(s + '…', t) > w) s = s.slice(0, -1); return s + '…'; };
-    const quebra = (s, f, t, w) => { const out = []; String(s || '').split('\n').forEach(par => { let l = ''; par.split(/\s+/).forEach(p => { if (!p) return; const tt = l ? l + ' ' + p : p; if (larg(tt, f, t) <= w) l = tt; else { if (l) out.push(l); l = p; } }); out.push(l); }); return out; };
+    const quebra = (s, f, t, w) => { const out = []; String(s ?? '').split('\n').forEach(par => { let linha = ''; const palavras = String(par).split(/\s+/).filter(Boolean); if (!palavras.length) { out.push(''); return; } palavras.forEach(palavra => { let partes = [palavra]; if (larg(palavra, f, t) > w) { partes = []; let parte = ''; for (const ch of palavra) { const teste = parte + ch; if (parte && larg(teste, f, t) > w) { partes.push(parte); parte = ch; } else parte = teste; } if (parte) partes.push(parte); } partes.forEach(parte => { const teste = linha ? linha + ' ' + parte : parte; if (larg(teste, f, t) <= w) linha = teste; else { if (linha) out.push(linha); linha = parte; } }); }); if (linha || !out.length) out.push(linha); }); return out; };
     const logoImg = logo ? await (logo.startsWith('data:image/png') ? pdf.embedPng(b64bytes(logo)) : pdf.embedJpg(b64bytes(logo))) : null;
     let page, y, novaVazia = false;
     function novaPagina() {
@@ -1464,15 +1464,14 @@ async function gerarPDF() {
     function titulo(s) { garantir(40); const h = 14; page.drawRectangle({ x: ML, y: y - h, width: CW, height: h, borderColor: PRETO, borderWidth: 1.1 });
         txt(s.toUpperCase(), ML + (CW - larg(s.toUpperCase(), FB, T_TIT)) / 2, y - h + 4, T_TIT, FB); y -= h + 6; }
     function linha(cols) {
-        garantir(ESP); const gap = 9, base = y - 11;
-        const fixo = cols.filter(c => c[3]).reduce((s, c) => s + larg(c[0].toUpperCase() + ':', F, T_ROT) + 4 + c[3], 0);
+        const gap = 9;
+        const fixo = cols.filter(c => c[3]).reduce((s, c) => s + c[3], 0);
         const disp = CW - gap * (cols.length - 1) - fixo, pesos = cols.filter(c => !c[3]).reduce((s, c) => s + (c[2] || 1), 0);
-        let x = ML;
-        cols.forEach(c => { const rot = c[0].toUpperCase() + ':', wr = larg(rot, F, T_ROT), wT = c[3] ? wr + 4 + c[3] : disp * (c[2] || 1) / pesos;
-            txt(rot, x, base, T_ROT); const x1 = x + wr + 4, x2 = x + wT; linhaH(x1, x2, base - 2);
-            if (c[1]) { const s = cabe(c[1], F, T_VAL, x2 - x1 - 4), ws = larg(s, F, T_VAL); txt(s, c[3] ? x1 + (x2 - x1 - ws) / 2 : x1 + 3, base + 0.5, T_VAL, F, AZUL); }
-            x += wT + gap; });
-        y -= ESP;
+        const dados = []; let x = ML, maxLin = 1;
+        cols.forEach(c => { const wT = c[3] || disp * (c[2] || 1) / pesos, rot = c[0].toUpperCase() + ':', valW = Math.max(18, wT - 6), rl = quebra(rot, F, T_ROT, valW), vl = quebra(c[1] || '', F, T_VAL, valW); maxLin = Math.max(maxLin, rl.length + Math.max(1, vl.length)); dados.push({ c, x, wT, rl, vl }); x += wT + gap; });
+        const passo = 10.5, h = Math.max(ESP, 5 + maxLin * passo); garantir(h);
+        dados.forEach(d => { let yy = y - 9; d.rl.forEach(l => { txt(l, d.x + 2, yy, T_ROT); yy -= passo; }); const baseLinha = y - h + 4; linhaH(d.x + 2, d.x + d.wT - 2, baseLinha); d.vl.forEach((l, j) => txt(l, d.x + 3, yy - j * passo, T_VAL, F, AZUL)); });
+        y -= h;
     }
     function caixa(tit, itens) {
         const hT = 14, lH = 13, hC = hT + 3 * lH + 8; garantir(hC + 8);
@@ -1526,19 +1525,15 @@ async function gerarPDF() {
         page.drawRectangle({ x: ML + (CW - w) / 2, y: y - h, width: w, height: h, borderColor: PRETO, borderWidth: 0.6 }); y -= h + 10;
     }
     async function paginasFotos() {
-        for (let p = 0; p < fotos.length; p += 4) {
-            novaPagina(); titulo(p ? 'Relação de Fotos (continuação)' : 'Relação de Fotos');
-            const id = idLinha(); if (id) { txt(cabe(id, F, T_ROT, CW), ML, y - 4, T_ROT); y -= 14; }
-            const gap = 8, cw = (CW - gap) / 2, legH = 14, ch = (y - MB - gap) / 2;
-            for (let k = 0; k < 4 && p + k < fotos.length; k++) {
-                const f = fotos[p + k], x = ML + (k % 2) * (cw + gap), top = y - Math.floor(k / 2) * (ch + gap);
-                page.drawRectangle({ x, y: top - ch, width: cw, height: ch, borderColor: PRETO, borderWidth: 0.7 });
-                const img = await pdf.embedJpg(b64bytes(f.src));
-                const aw = cw - 8, ah = ch - legH - 8, e2 = Math.min(aw / img.width, ah / img.height), iw = img.width * e2, ih = img.height * e2;
-                page.drawImage(img, { x: x + 4 + (aw - iw) / 2, y: top - 4 - ah + (ah - ih) / 2, width: iw, height: ih });
-                const leg = `FOTO ${nn(p + k)}`; txt(leg, x + 4, top - ch + 5, T_ROT, FB);
-                if (f.leg) txt(cabe('– ' + f.leg, F, T_ROT, cw - 12 - larg(leg, FB, T_ROT)), x + 8 + larg(leg, FB, T_ROT), top - ch + 5, T_ROT, F, AZUL);
-            }
+        for (let i = 0; i < fotos.length; i++) {
+            novaPagina(); titulo(i ? 'Relação de Fotos (continuação)' : 'Relação de Fotos');
+            const id = idLinha(); if (id) { const ils = quebra(id, F, T_ROT, CW); garantir(ils.length * 11 + 3); ils.forEach((l, j) => txt(l, ML, y - 4 - j * 11, T_ROT)); y -= ils.length * 11 + 5; }
+            const f = fotos[i], leg = `FOTO ${nn(i)}`, legLin = quebra(f.leg ? '– ' + f.leg : '', F, T_ROT, CW - 8);
+            const legH = 18 + Math.max(1, legLin.length) * 11, maxImgH = Math.max(120, y - MB - legH - 12);
+            const img = await pdf.embedJpg(b64bytes(f.src)), e2 = Math.min((CW - 8) / img.width, maxImgH / img.height), iw = img.width * e2, ih = img.height * e2;
+            garantir(ih + legH + 8); const top = y; page.drawRectangle({ x: ML, y: top - ih - legH - 8, width: CW, height: ih + legH + 8, borderColor: PRETO, borderWidth: 0.7 });
+            page.drawImage(img, { x: ML + (CW - iw) / 2, y: top - 4 - ih, width: iw, height: ih });
+            txt(leg, ML + 4, top - ih - 17, T_ROT, FB); legLin.forEach((l, j) => txt(l, ML + 4, top - ih - 29 - j * 11, T_ROT, F, AZUL));
             y = MB;
         }
     }

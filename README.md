@@ -12,3 +12,13 @@ Atualização pontual sobre a estrutura original, sem reorganização da aplica�
 - PDF, Word e CSV reconhecem os campos adicionados pela estrutura existente.
 
 Cache offline atualizado para ficha-12.
+
+
+#### Correção de exportação e compartilhamento
+- PDF e PDF compartilhado agora usam quebra automática de linha com altura dinâmica em todos os campos.
+- Textos longos, inclusive sequências sem espaços, são divididos sem truncamento.
+- A paginação é automática quando o conteúdo ultrapassa a área útil.
+- As fotografias passam a ocupar páginas individuais, permitindo que identificação e legenda sejam exibidas integralmente.
+- Word continua usando células e parágrafos com quebra automática, sem limitar o comprimento dos valores.
+
+Cache offline atualizado para ficha-13.
